@@ -14,7 +14,7 @@ app.use(cors({
   credentials: true
 }));
 
-// routes
+// auth - routes
 app.use("/api/auth", authRoutes);
 
 // test route

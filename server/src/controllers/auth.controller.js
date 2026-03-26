@@ -1,5 +1,7 @@
 const adminModel = require("../models/admin.model");
 const bcrypt = require("bcrypt")
+const jwt = require("jsonwebtoken")
+
 
 async function registerAdmin(req, res) {
 
@@ -51,10 +53,67 @@ async function registerAdmin(req, res) {
    }
 }
 
+async function loginAdmin(req, res) {
 
+   try {
+      const { email, password } = req.body
+
+      // step -1  validate request
+      if (!email || !password) {
+         return res.status(400).json({
+            message: "Email and Password both are required"
+         })
+      }
+
+      // step - 2 check if admin exists or not
+
+      const admin = await adminModel.findOne({ email })
+      if (!admin) {
+         return res.status(400).json({
+            message: "Invalid email or passowrd"
+         })
+      }
+
+      // Step -3 compare password
+      const isMatch = await bcrypt.compare(password, admin.password)
+
+      if (!isMatch) {
+         return res.status(400).json({
+            message: "Invalid email or Password"
+         })
+      }
+
+      // step-4 generate token
+      const token = jwt.sign(
+         { id: admin._id },
+         process.env.JWT_SECRET,
+         { expiresIn: "7d" }
+      )
+
+      // step - 5 cookie set
+      res.cookie("token", token);
+
+      // step -6 generate response
+
+      res.status(200).json({
+         message: "Login Successfully",
+         admin: {
+            id: admin._id,
+            name: admin.name,
+            email: admin.email
+         }
+      });
+   }
+   catch (error) {
+      console.log("Login Error", error.message)
+      res.status(500).json({
+         message: "Internal Server Error"
+      })
+   }
+
+}
 
 module.exports = {
    registerAdmin,
-   loginAdmin,
-
+   loginAdmin
 }
