@@ -34,8 +34,17 @@ async function registerAdmin(req, res) {
          password: hashedPassword
       });
 
-      // step -5 response
+      // step-5 generate token
+      const token = jwt.sign(
+         { id: admin._id },
+         process.env.JWT_SECRET,
+         { expiresIn: "1d" }
+      )
 
+      // step - 6 cookie set
+      res.cookie("token", token);
+
+      // step -7 response
       res.status(201).json({
          message: "Admin Created Successfully",
          admin: {
@@ -87,7 +96,7 @@ async function loginAdmin(req, res) {
       const token = jwt.sign(
          { id: admin._id },
          process.env.JWT_SECRET,
-         { expiresIn: "7d" }
+         { expiresIn: "1d" }
       )
 
       // step - 5 cookie set
