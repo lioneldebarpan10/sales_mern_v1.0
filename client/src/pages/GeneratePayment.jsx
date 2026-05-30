@@ -1,287 +1,269 @@
-import React, { useState, useEffect } from 'react';
-import { User, Hash, Calendar, DollarSign, CreditCard, Wallet, Calculator } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { User, Hash, Calendar, DollarSign, CreditCard, Wallet, Calculator, CheckCircle, X, Zap } from 'lucide-react';
 import api from '../services/api';
+
+/* ── Toast ── */
+const Toast = ({ toasts, remove }) => (
+    <div className="toast-container">
+        {toasts.map(t => (
+            <div key={t.id} className={`toast toast-${t.type}`}>
+                {t.type === 'success' ? <CheckCircle size={16} /> : <X size={16} />}
+                <span className="flex-1">{t.message}</span>
+                <button onClick={() => remove(t.id)} style={{ background:'none', border:'none', cursor:'pointer', opacity:0.6 }}><X size={14} /></button>
+            </div>
+        ))}
+    </div>
+);
+
+/* ── Field ── */
+const Field = ({ label, optional, icon, children }) => (
+    <div>
+        <label className="block text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#64748b' }}>
+            {label}{' '}
+            {optional
+                ? <span className="normal-case font-normal" style={{ color: '#94a3b8' }}>(Auto)</span>
+                : <span style={{ color: '#f43f5e' }}>*</span>}
+        </label>
+        <div className="relative">
+            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" style={{ color: '#94a3b8' }}>{icon}</span>
+            {children}
+        </div>
+    </div>
+);
+
+const inputCls = 'w-full pl-10 pr-4 py-3 text-sm rounded-xl transition-all duration-200 outline-none';
+const inputBase = { border: '1.5px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontFamily: 'Inter,sans-serif' };
+const focusOn  = e => { e.target.style.borderColor='#4f46e5'; e.target.style.background='#fff'; e.target.style.boxShadow='0 0 0 3px rgba(79,70,229,0.1)'; };
+const focusOff = e => { e.target.style.borderColor='#e2e8f0'; e.target.style.background='#f8fafc'; e.target.style.boxShadow='none'; };
 
 const GeneratePayment = () => {
     const today = new Date().toISOString().split('T')[0];
-
     const [formData, setFormData] = useState({
-        stockistName: '',
-        stockistId: '',
-        fromDate: today,
-        toDate: today,
-        totalPayment: '',
-        paidPayment: '',
-        duePayment: 0
+        stockistName: '', stockistId: '',
+        fromDate: today, toDate: today,
+        totalPayment: '', paidPayment: '', duePayment: 0,
     });
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
     const [idLookupError, setIdLookupError] = useState('');
+    const [idFound, setIdFound] = useState(false);
+    const [toasts, setToasts] = useState([]);
 
-    // Auto-calculate Due Payment whenever Total or Paid changes
+    const addToast = useCallback((message, type = 'success') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, type }]);
+        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
+    }, []);
+    const removeToast = useCallback(id => setToasts(prev => prev.filter(t => t.id !== id)), []);
+
+    // Auto-calc due
     useEffect(() => {
         const total = parseFloat(formData.totalPayment) || 0;
-        const paid = parseFloat(formData.paidPayment) || 0;
-        const due = total - paid;
+        const paid  = parseFloat(formData.paidPayment)  || 0;
+        const due   = total - paid;
         setFormData(prev => ({ ...prev, duePayment: due >= 0 ? due : 0 }));
     }, [formData.totalPayment, formData.paidPayment]);
 
-    const handleChange = (e) => {
+    const handleChange = e => {
         const { name, value } = e.target;
-
-        // Prevent negative numbers for payments
-        if ((name === 'totalPayment' || name === 'paidPayment') && parseFloat(value) < 0) {
-            return;
-        }
-
+        if ((name === 'totalPayment' || name === 'paidPayment') && parseFloat(value) < 0) return;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    // ID lookup
     useEffect(() => {
         const timer = setTimeout(async () => {
             const id = formData.stockistId.trim();
-            if (!id) {
-                setIdLookupError('');
-                return;
-            }
-
+            if (!id) { setIdLookupError(''); setIdFound(false); return; }
             try {
-                const response = await api.get(`/api/substockist/${id}`);
-                const substockist = response.data.substockist;
-                const fullName = `${substockist.firstName} ${substockist.middleName ? substockist.middleName + ' ' : ''}${substockist.lastName}`.trim();
+                const res = await api.get(`/api/substockist/${id}`);
+                const sub = res.data.substockist;
+                const fullName = `${sub.firstName} ${sub.middleName ? sub.middleName + ' ' : ''}${sub.lastName}`.trim();
                 setFormData(prev => ({ ...prev, stockistName: fullName }));
                 setIdLookupError('');
-            } catch (err) {
+                setIdFound(true);
+            } catch {
                 setIdLookupError('Substockist ID not found');
+                setIdFound(false);
             }
         }, 400);
-
         return () => clearTimeout(timer);
     }, [formData.stockistId]);
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = async e => {
         e.preventDefault();
-        setError('');
-
-        if (idLookupError) {
-            setError(idLookupError);
-            return;
-        }
-
-        if (parseFloat(formData.totalPayment) <= 0) {
-            setError('Total payment must be greater than 0');
-            return;
-        }
-
-        if (!formData.stockistName.trim()) {
-            setError('Substockist name is required');
-            return;
-        }
+        if (idLookupError) { addToast(idLookupError, 'error'); return; }
+        if (parseFloat(formData.totalPayment) <= 0) { addToast('Total payment must be greater than 0', 'error'); return; }
+        if (!formData.stockistName.trim()) { addToast('Substockist name is required', 'error'); return; }
+        if (new Date(formData.fromDate) > new Date(formData.toDate)) { addToast('From date cannot be after To date', 'error'); return; }
 
         setLoading(true);
         try {
-            if (new Date(formData.fromDate) > new Date(formData.toDate)) {
-                setError('From date cannot be after To date');
-                setLoading(false);
-                return;
-            }
-
             await api.post('/api/payment', {
-                stockistName: formData.stockistName,
+                stockistName:  formData.stockistName,
                 substockistId: formData.stockistId,
-                fromDate: formData.fromDate,
-                toDate: formData.toDate,
-                totalAmount: parseFloat(formData.totalPayment),
-                paidAmount: parseFloat(formData.paidPayment)
+                fromDate:      formData.fromDate,
+                toDate:        formData.toDate,
+                totalAmount:   parseFloat(formData.totalPayment),
+                paidAmount:    parseFloat(formData.paidPayment),
             });
-
-            alert('Payment generated successfully!');
-            setFormData(prev => ({
-                ...prev,
-                stockistName: '',
-                stockistId: '',
-                totalPayment: '',
-                paidPayment: '',
-                duePayment: 0
-            }));
+            addToast('Payment generated successfully!', 'success');
+            setFormData(prev => ({ ...prev, stockistName:'', stockistId:'', totalPayment:'', paidPayment:'', duePayment:0 }));
+            setIdFound(false);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to generate payment');
+            addToast(err.response?.data?.message || 'Failed to generate payment', 'error');
         } finally {
             setLoading(false);
         }
     };
 
+    const total = parseFloat(formData.totalPayment) || 0;
+    const paid  = parseFloat(formData.paidPayment)  || 0;
+    const due   = formData.duePayment;
+    const paidPct = total > 0 ? Math.min((paid / total) * 100, 100) : 0;
+
     return (
-        <div className="p-2">
-            <h2 className="text-3xl font-bold text-gray-700 dark:text-gray-700 mb-8">Generate Payment</h2>
+        <div className="animate-fade-in">
+            <Toast toasts={toasts} remove={removeToast} />
 
-            <div className="bg-white p-8 rounded-3xl shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
-                {error && <div className="mb-4 text-sm text-red-600">{error}</div>}
-                <form onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {/* Header */}
+            <div className="page-header mb-8">
+                <div className="relative z-10">
+                    <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.55)' }}>Payments</p>
+                    <h1 className="text-2xl font-bold text-white">Generate Payment</h1>
+                    <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                        Record a payment entry for a substockist.
+                    </p>
+                </div>
+            </div>
 
-                        {/* Sub Stockist Name */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Substockist Name <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <User size={18} className="text-gray-400" />
-                                </div>
+            <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-6">
+                {/* Form card */}
+                <div className="card p-7 animate-slide-up">
+                    <form onSubmit={handleSubmit}>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
+
+                            {/* Name */}
+                            <Field label="Substockist Name" icon={<User size={16} />}>
                                 <input
-                                    type="text"
-                                    name="stockistName"
-                                    value={formData.stockistName}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
-                                    placeholder="Enter Name"
+                                    type="text" name="stockistName" id="stockist-name"
+                                    value={formData.stockistName} onChange={handleChange}
+                                    required placeholder="Auto-filled from ID"
+                                    className={inputCls}
+                                    style={{ ...inputBase, background: idFound ? '#f0fdf4' : '#f8fafc', borderColor: idFound ? '#6ee7b7' : '#e2e8f0' }}
+                                    onFocus={focusOn} onBlur={focusOff}
                                 />
-                        {idLookupError && (
-                            <p className="text-xs text-red-600 mt-2">{idLookupError}</p>
-                        )}
-                            </div>
+                                {idLookupError && (
+                                    <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#f43f5e' }}>
+                                        <X size={11} />{idLookupError}
+                                    </p>
+                                )}
+                                {idFound && (
+                                    <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#059669' }}>
+                                        <CheckCircle size={11} />Partner found
+                                    </p>
+                                )}
+                            </Field>
+
+                            {/* ID */}
+                            <Field label="Substockist ID" icon={<Hash size={16} />}>
+                                <input
+                                    type="text" name="stockistId" id="stockist-id"
+                                    value={formData.stockistId} onChange={handleChange}
+                                    required placeholder="Unique ID"
+                                    className={inputCls} style={inputBase}
+                                    onFocus={focusOn} onBlur={focusOff}
+                                />
+                            </Field>
+
+                            {/* From Date */}
+                            <Field label="From Date" icon={<Calendar size={16} />}>
+                                <input type="date" name="fromDate" id="from-date" value={formData.fromDate} onChange={handleChange} required className={inputCls} style={inputBase} onFocus={focusOn} onBlur={focusOff} />
+                            </Field>
+
+                            {/* To Date */}
+                            <Field label="To Date" icon={<Calendar size={16} />}>
+                                <input type="date" name="toDate" id="to-date" value={formData.toDate} onChange={handleChange} required className={inputCls} style={inputBase} onFocus={focusOn} onBlur={focusOff} />
+                            </Field>
+
+                            {/* Total */}
+                            <Field label="Total Payment" icon={<DollarSign size={16} />}>
+                                <input type="number" name="totalPayment" id="total-payment" value={formData.totalPayment} onChange={handleChange} required min="1" placeholder="0.00" className={inputCls} style={inputBase} onFocus={focusOn} onBlur={focusOff} />
+                            </Field>
+
+                            {/* Paid */}
+                            <Field label="Paid Payment" icon={<CreditCard size={16} />}>
+                                <input type="number" name="paidPayment" id="paid-payment" value={formData.paidPayment} onChange={handleChange} required min="0" placeholder="0.00" className={inputCls} style={inputBase} onFocus={focusOn} onBlur={focusOff} />
+                            </Field>
+
+                            {/* Due — read only */}
+                            <Field label="Due Payment" optional icon={<Calculator size={16} />}>
+                                <input
+                                    type="number" name="duePayment" value={formData.duePayment} readOnly
+                                    className={inputCls}
+                                    style={{ ...inputBase, background: due > 0 ? '#fff1f2' : '#f0fdf4', borderColor: due > 0 ? '#fda4af' : '#6ee7b7', color: due > 0 ? '#be123c' : '#065f46', fontWeight: 700 }}
+                                />
+                            </Field>
                         </div>
 
-                        {/* Sub Stockist ID */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Substockist ID <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Hash size={18} className="text-gray-400" />
-                                </div>
-                                <input
-                                    type="text"
-                                    name="stockistId"
-                                    value={formData.stockistId}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
-                                    placeholder="Unique ID"
-                                />
-                            </div>
+                        <div className="flex justify-end pt-4" style={{ borderTop: '1px solid #f1f5f9' }}>
+                            <button
+                                type="submit" id="generate-payment-submit"
+                                disabled={loading}
+                                className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200"
+                                style={{
+                                    background: loading ? '#a5b4fc' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+                                    boxShadow: loading ? 'none' : '0 6px 20px rgba(79,70,229,0.35)',
+                                    cursor: loading ? 'not-allowed' : 'pointer',
+                                }}
+                            >
+                                {loading ? (
+                                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                ) : <Wallet size={16} />}
+                                {loading ? 'Generating…' : 'Generate Payment'}
+                            </button>
                         </div>
+                    </form>
+                </div>
 
-                        {/* From Date */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                From Date <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Calendar size={18} className="text-gray-400" />
-                                </div>
-                                <input
-                                    type="date"
-                                    name="fromDate"
-                                    value={formData.fromDate}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
-                                />
-                            </div>
-                        </div>
-
-                        {/* To Date */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                To Date <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Calendar size={18} className="text-gray-400" />
-                                </div>
-                                <input
-                                    type="date"
-                                    name="toDate"
-                                    value={formData.toDate}
-                                    onChange={handleChange}
-                                    required
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Total Payment */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Total Payment <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <DollarSign size={18} className="text-gray-400" />
-                                </div>
-                                <input
-                                    type="number"
-                                    name="totalPayment"
-                                    value={formData.totalPayment}
-                                    onChange={handleChange}
-                                    required
-                                    min="1"
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
-                                    placeholder="0.00"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Paid Payment */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Paid Payment <span className="text-red-500">*</span>
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <CreditCard size={18} className="text-gray-400" />
-                                </div>
-                                <input
-                                    type="number"
-                                    name="paidPayment"
-                                    value={formData.paidPayment}
-                                    onChange={handleChange}
-                                    required
-                                    min="0"
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
-                                    placeholder="0.00"
-                                />
-                            </div>
-                        </div>
-
-                        {/* Due Payment (Read Only / Auto-filled) */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Due Payment <span className="text-gray-400 font-normal">(Auto-calculated)</span>
-                            </label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Calculator size={18} className="text-gray-400" />
-                                </div>
-                                <input
-                                    type="number"
-                                    name="duePayment"
-                                    value={formData.duePayment}
-                                    readOnly
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-700 font-bold outline-none"
-                                />
-                            </div>
-                        </div>
-
+                {/* Live summary card */}
+                <div className="card p-6 animate-slide-up h-fit" style={{ animationDelay: '80ms' }}>
+                    <div className="flex items-center gap-2 mb-5">
+                        <Zap size={16} color="#4f46e5" />
+                        <h3 className="text-sm font-bold" style={{ color: '#0f172a' }}>Live Summary</h3>
                     </div>
 
-                    {/* Submit Button */}
-                    <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-3 px-8 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2 cursor-pointer"
-                        >
-                            <Wallet size={18} />
-                            {loading ? 'Generating...' : 'Generate Payment'}
-                        </button>
+                    <div className="space-y-4">
+                        {[
+                            { label: 'Total', value: total, style: { color: '#1d4ed8' }, bg: '#eff6ff' },
+                            { label: 'Paid',  value: paid,  style: { color: '#065f46' }, bg: '#f0fdf4' },
+                            { label: 'Due',   value: due,   style: { color: '#be123c' }, bg: '#fff1f2' },
+                        ].map(({ label, value, style, bg }) => (
+                            <div key={label} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ background: bg }}>
+                                <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</span>
+                                <span className="text-lg font-bold" style={style}>${value.toLocaleString()}</span>
+                            </div>
+                        ))}
                     </div>
-                </form>
+
+                    {/* Progress bar */}
+                    {total > 0 && (
+                        <div className="mt-5">
+                            <div className="flex justify-between text-xs font-semibold mb-2" style={{ color: '#64748b' }}>
+                                <span>Payment Progress</span>
+                                <span>{paidPct.toFixed(0)}%</span>
+                            </div>
+                            <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
+                                <div
+                                    className="h-full rounded-full transition-all duration-500"
+                                    style={{ width: `${paidPct}%`, background: 'linear-gradient(90deg,#4f46e5,#10b981)' }}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );

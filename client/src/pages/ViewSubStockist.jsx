@@ -1,142 +1,210 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search } from 'lucide-react';
+import { Search, RefreshCw, Trash2, Eye, Users } from 'lucide-react';
 import api from '../services/api';
 
-const ViewSubStockist = () => {
-  const [substockists, setSubstockists] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+/* ── Skeleton rows ── */
+const SkeletonRow = () => (
+    <tr>
+        {[1,2,3,4,5,6].map(i => (
+            <td key={i} className="py-4 px-4">
+                <div className="skeleton h-4 rounded" style={{ width: i === 3 ? 140 : i === 5 ? 160 : 80 }} />
+            </td>
+        ))}
+    </tr>
+);
 
-  const fetchSubstockists = async (search = '') => {
-    setLoading(true);
-    setError('');
-
-    try {
-      const response = await api.get('/api/substockist', {
-        params: { search, t: Date.now() }
-      });
-      setSubstockists(response.data.data || []);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Unable to load substockists');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchSubstockists();
-  }, []);
-
-  useEffect(() => {
-    const debounce = setTimeout(() => {
-      fetchSubstockists(searchTerm);
-    }, 300);
-
-    return () => clearTimeout(debounce);
-  }, [searchTerm]);
-
-  const handleDelete = async (id) => {
-    const confirmed = window.confirm("Delete this substockist and all related payments?");
-    if (!confirmed) return;
-
-    setLoading(true);
-    setError('');
-    try {
-      await api.delete(`/api/substockist/${id}`);
-      fetchSubstockists(searchTerm);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Unable to delete substockist');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="p-2">
-      <h2 className="text-3xl font-bold text-gray-700 dark:text-gray-700 mb-8">View All Substockists</h2>
-
-      <div className="bg-white p-6 rounded-3xl shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-          <div className="relative w-full md:w-96">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search size={20} className="text-gray-400" />
+/* ── Empty state ── */
+const EmptyState = ({ search }) => (
+    <tr>
+        <td colSpan={6}>
+            <div className="py-16 flex flex-col items-center gap-3 text-center">
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#f1f5f9' }}>
+                    <Users size={26} color="#94a3b8" />
+                </div>
+                <p className="text-sm font-semibold" style={{ color: '#475569' }}>
+                    {search ? `No results for "${search}"` : 'No substockists yet'}
+                </p>
+                <p className="text-xs" style={{ color: '#94a3b8' }}>
+                    {search ? 'Try a different search term.' : 'Add your first substockist to get started.'}
+                </p>
             </div>
-            <input
-              type="text"
-              placeholder="Search by ID or Name..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => fetchSubstockists(searchTerm)}
-            className="h-12 rounded-xl bg-indigo-500 text-white px-5 text-sm font-medium hover:bg-indigo-600 transition"
-          >
-            Refresh
-          </button>
-        </div>
+        </td>
+    </tr>
+);
 
-        {loading ? (
-          <div className="py-10 text-center text-gray-500">Loading substockists...</div>
-        ) : error ? (
-          <div className="py-10 text-center text-red-600">{error}</div>
-        ) : (
-          <div className="overflow-x-auto custom-scrollbar pb-4">
-            <table className="w-full min-w-[700px]">
-              <thead>
-                <tr className="border-b border-gray-100 text-left">
-                  <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Created At</th>
-                  <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">ID</th>
-                  <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Name</th>
-                  <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Phone</th>
-                  <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Email</th>
-                  <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {substockists.length > 0 ? (
-                  substockists.map((item) => (
-                    <tr key={item._id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
-                      <td className="py-4 px-4 text-sm font-medium text-navy-700">{new Date(item.createdAt).toLocaleDateString()}</td>
-                      <td className="py-4 px-4 text-sm font-bold text-indigo-500">{item.substockistId}</td>
-                      <td className="py-4 px-4 text-sm font-bold text-navy-700">{`${item.firstName} ${item.middleName ? item.middleName + ' ' : ''}${item.lastName}`}</td>
-                      <td className="py-4 px-4 text-sm font-medium text-gray-600">{item.phone}</td>
-                      <td className="py-4 px-4 text-sm font-medium text-gray-600">{item.email || '—'}</td>
-                      <td className="py-4 px-4 text-sm font-medium text-gray-600 space-x-2">
-                        <Link
-                          to={`/view-substockist/${item._id}`}
-                          className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600 transition"
-                        >
-                          View
-                        </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(item._id)}
-                          className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 transition"
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="6" className="py-10 text-center text-gray-500">
-                      No substockists found.
-                    </td>
-                  </tr>
+const ViewSubStockist = () => {
+    const [substockists, setSubstockists] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
+    const [deletingId, setDeletingId] = useState(null);
+
+    const fetchSubstockists = async (search = '') => {
+        setLoading(true);
+        setError('');
+        try {
+            const res = await api.get('/api/substockist', { params: { search, t: Date.now() } });
+            setSubstockists(res.data.data || []);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Unable to load substockists');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => { fetchSubstockists(); }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => fetchSubstockists(searchTerm), 300);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
+
+    const handleDelete = async id => {
+        if (!window.confirm('Delete this substockist and all related payments?')) return;
+        setDeletingId(id);
+        try {
+            await api.delete(`/api/substockist/${id}`);
+            fetchSubstockists(searchTerm);
+        } catch (err) {
+            setError(err.response?.data?.message || 'Unable to delete substockist');
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
+    return (
+        <div className="animate-fade-in">
+            {/* Header */}
+            <div className="page-header mb-8">
+                <div className="relative z-10">
+                    <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'rgba(255,255,255,0.55)' }}>Management</p>
+                    <h1 className="text-2xl font-bold text-white">View All Substockists</h1>
+                    <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.6)' }}>
+                        Browse, search, and manage your registered partners.
+                    </p>
+                </div>
+            </div>
+
+            <div className="card p-6 animate-slide-up">
+                {/* Controls */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
+                    <div className="relative flex-1">
+                        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#94a3b8' }} />
+                        <input
+                            type="text"
+                            id="substockist-search"
+                            placeholder="Search by ID or name…"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl outline-none transition-all duration-200"
+                            style={{ border: '1.5px solid #e2e8f0', background: '#f8fafc', color: '#1e293b' }}
+                            onFocus={e => { e.target.style.borderColor='#4f46e5'; e.target.style.boxShadow='0 0 0 3px rgba(79,70,229,0.1)'; e.target.style.background='#fff'; }}
+                            onBlur={e => { e.target.style.borderColor='#e2e8f0'; e.target.style.boxShadow='none'; e.target.style.background='#f8fafc'; }}
+                        />
+                    </div>
+
+                    <button
+                        type="button"
+                        id="refresh-btn"
+                        onClick={() => fetchSubstockists(searchTerm)}
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
+                        style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', boxShadow: '0 4px 14px rgba(79,70,229,0.3)' }}
+                    >
+                        <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+                        Refresh
+                    </button>
+                </div>
+
+                {/* Summary pill */}
+                {!loading && !error && (
+                    <div className="mb-4">
+                        <span className="badge badge-neutral">
+                            {substockists.length} {substockists.length === 1 ? 'partner' : 'partners'} found
+                        </span>
+                    </div>
                 )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+
+                {error && (
+                    <div className="py-4 px-4 rounded-xl mb-4 text-sm font-medium animate-fade-in" style={{ background: '#ffe4e6', color: '#9f1239' }}>
+                        {error}
+                    </div>
+                )}
+
+                {/* Table */}
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="premium-table w-full min-w-[700px]">
+                        <thead>
+                            <tr>
+                                <th>Created At</th>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Phone</th>
+                                <th>Email</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                [1,2,3,4,5].map(i => <SkeletonRow key={i} />)
+                            ) : substockists.length > 0 ? (
+                                substockists.map(item => (
+                                    <tr key={item._id}>
+                                        <td>
+                                            <span className="text-xs" style={{ color: '#94a3b8' }}>
+                                                {new Date(item.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span className="badge badge-neutral">{item.substockistId}</span>
+                                        </td>
+                                        <td>
+                                            <div className="flex items-center gap-2.5">
+                                                <div
+                                                    className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                                                    style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff' }}
+                                                >
+                                                    {item.firstName?.[0]}{item.lastName?.[0]}
+                                                </div>
+                                                <span className="font-semibold text-sm" style={{ color: '#0f172a' }}>
+                                                    {item.firstName} {item.middleName ? item.middleName + ' ' : ''}{item.lastName}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td style={{ color: '#475569' }}>{item.phone}</td>
+                                        <td style={{ color: '#94a3b8' }}>{item.email || '—'}</td>
+                                        <td>
+                                            <div className="flex items-center gap-2">
+                                                <Link
+                                                    to={`/view-substockist/${item._id}`}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                                                    style={{ background: '#ede9fe', color: '#5b21b6' }}
+                                                >
+                                                    <Eye size={13} /> View
+                                                </Link>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDelete(item._id)}
+                                                    disabled={deletingId === item._id}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
+                                                    style={{ background: '#ffe4e6', color: '#9f1239', cursor: deletingId === item._id ? 'not-allowed' : 'pointer', opacity: deletingId === item._id ? 0.6 : 1 }}
+                                                >
+                                                    <Trash2 size={13} />
+                                                    {deletingId === item._id ? '…' : 'Delete'}
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <EmptyState search={searchTerm} />
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
 };
 
 export default ViewSubStockist;

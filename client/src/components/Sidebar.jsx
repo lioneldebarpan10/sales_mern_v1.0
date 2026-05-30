@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, UserPlus, Users, CreditCard, Mail, Menu, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, UserPlus, Users, CreditCard, FileText, Menu, X, LogOut, ChevronLeft, TrendingUp } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSidebar } from '../context/SidebarContext';
 
 const Sidebar = () => {
     const [activeRoute, setActiveRoute] = React.useState("Dashboard");
@@ -9,8 +10,8 @@ const Sidebar = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { logout } = useAuth();
+    const { isSidebarOpen, toggleSidebar } = useSidebar();
 
-    // Sync active route with location on load/change
     React.useEffect(() => {
         const path = location.pathname;
         const activeItem = menuItems.find(item => item.path === path);
@@ -22,111 +23,145 @@ const Sidebar = () => {
     }, [location]);
 
     const menuItems = [
-        { name: "Dashboard", icon: <LayoutDashboard size={20} />, id: "dashboard", path: "/" },
-        { name: "Add Substockist", icon: <UserPlus size={20} />, id: "add-substockist", path: "/add-substockist" },
-        { name: "View Substockist", icon: <Users size={20} />, id: "view-substockist", path: "/view-substockist" },
-        { name: "Generate Payment", icon: <CreditCard size={20} />, id: "generate-payment", path: "/generate-payment" },
-        { name: "Payment History", icon: <CreditCard size={20} />, id: "payment-history", path: "/payment-history" },
+        { name: "Dashboard",       icon: <LayoutDashboard size={18} />, id: "dashboard",        path: "/" },
+        { name: "Add Substockist", icon: <UserPlus size={18} />,        id: "add-substockist",  path: "/add-substockist" },
+        { name: "View Substockist",icon: <Users size={18} />,           id: "view-substockist", path: "/view-substockist" },
+        { name: "Generate Payment",icon: <CreditCard size={18} />,      id: "generate-payment", path: "/generate-payment" },
+        { name: "Payment History", icon: <TrendingUp size={18} />,      id: "payment-history",  path: "/payment-history" },
     ];
-
-    const toggleMobileMenu = () => {
-        setIsMobileMenuOpen(!isMobileMenuOpen);
-    };
 
     const handleNavigation = (path, name) => {
         setActiveRoute(name);
         navigate(path);
-        setIsMobileMenuOpen(false); // Close menu on selection for mobile
+        setIsMobileMenuOpen(false);
     };
 
     return (
         <>
-            {/* Mobile Toggle Button */}
+            {/* Desktop open-button shown when sidebar is collapsed */}
+            {!isSidebarOpen && (
+                <button
+                    onClick={toggleSidebar}
+                    className="hidden lg:flex fixed top-5 left-5 z-50 p-2.5 rounded-xl shadow-lg transition-all items-center justify-center"
+                    style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff' }}
+                    aria-label="Open Sidebar"
+                >
+                    <Menu size={18} />
+                </button>
+            )}
+
+            {/* Mobile toggle */}
             <button
-                onClick={toggleMobileMenu}
-                className="lg:hidden fixed top-4 right-4 z-50 p-2 bg-indigo-500 text-white rounded-lg shadow-lg hover:bg-indigo-600 transition-colors"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden fixed top-4 right-4 z-50 p-2.5 rounded-xl shadow-lg transition-all"
+                style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff' }}
                 aria-label="Toggle Menu"
             >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
             </button>
 
-            {/* Overlay for Mobile */}
+            {/* Mobile overlay */}
             {isMobileMenuOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
+                    className="fixed inset-0 z-40 lg:hidden"
+                    style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
-            {/* Sidebar Container */}
-            <div className={`
-                fixed lg:sticky top-0 h-screen w-72 bg-white flex flex-col font-sans border-r border-gray-100 flex-shrink-0 z-50 transition-transform duration-300 ease-in-out
-                ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-            `}>
-                {/* Header */}
-                <div className="flex items-center justify-center h-24 border-b border-gray-100/50">
-                    <h1 className="text-2xl font-bold uppercase text-gray-700">
-                        SalesiFy
-                    </h1>
+            {/* Sidebar */}
+            <div
+                className={`
+                    fixed top-0 left-0 h-screen w-72 flex flex-col z-50
+                    transition-transform duration-300 ease-in-out
+                    ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+                    ${!isSidebarOpen ? 'lg:-translate-x-full' : 'lg:translate-x-0'}
+                `}
+                style={{ background: '#0f172a', borderRight: '1px solid rgba(255,255,255,0.05)' }}
+            >
+                {/* Logo area */}
+                <div className="flex items-center justify-between px-6 h-20" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)' }}>
+                            <TrendingUp size={16} color="#fff" />
+                        </div>
+                        <span className="text-xl font-bold tracking-tight" style={{ background: 'linear-gradient(135deg,#818cf8,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                            SalesiFy
+                        </span>
+                    </div>
+                    <button
+                        onClick={toggleSidebar}
+                        className="hidden lg:flex p-1.5 rounded-lg transition-colors"
+                        style={{ color: '#475569' }}
+                        onMouseEnter={e => e.currentTarget.style.color='#94a3b8'}
+                        onMouseLeave={e => e.currentTarget.style.color='#475569'}
+                        aria-label="Collapse Sidebar"
+                    >
+                        <ChevronLeft size={18} />
+                    </button>
                 </div>
 
-                <hr className='border-gray-400' />
+                {/* Section label */}
+                <div className="px-6 pt-6 pb-2">
+                    <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#334155' }}>Main Menu</p>
+                </div>
 
-                {/* Menu Items */}
-                <div className="flex flex-col py-4 space-y-2">
+                {/* Nav items */}
+                <nav className="flex-1 px-0 py-2 space-y-1">
                     {menuItems.map((item) => {
                         const isActive = activeRoute === item.name;
-
                         return (
                             <div
                                 key={item.id}
                                 onClick={() => handleNavigation(item.path, item.name)}
-                                className={`relative flex items-center py-3 px-8 cursor-pointer group transition-all duration-200
-                                    ${isActive ? 'bg-indigo-50/50' : 'hover:bg-indigo-50/30'}`} // Added hover background
+                                className="sidebar-link"
+                                style={isActive ? {
+                                    background: 'linear-gradient(135deg,rgba(79,70,229,0.3),rgba(124,58,237,0.18))',
+                                    color: '#e0e7ff',
+                                    fontWeight: 600,
+                                } : {}}
                             >
-                                {/* Active Indicator Line */}
+                                {/* Active left bar */}
                                 {isActive && (
-                                    <div className="absolute right-0 top-1/2 -translate-y-1/2 h-9 w-1 bg-indigo-500 rounded-l-lg" />
+                                    <span
+                                        className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-7 rounded-r-full"
+                                        style={{ background: 'linear-gradient(180deg,#818cf8,#a78bfa)' }}
+                                    />
                                 )}
 
-                                {/* Icon */}
                                 <span
-                                    className={`mr-4 transition-colors duration-200 ${isActive
-                                        ? 'text-indigo-500'
-                                        : 'text-indigo-300 group-hover:text-indigo-400'
-                                        }`}
+                                    className="flex items-center justify-center w-8 h-8 rounded-lg flex-shrink-0 transition-all duration-200"
+                                    style={isActive
+                                        ? { background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', boxShadow: '0 4px 12px rgba(79,70,229,0.4)' }
+                                        : { background: 'rgba(255,255,255,0.05)', color: '#64748b' }
+                                    }
                                 >
                                     {item.icon}
                                 </span>
-
-                                {/* Text */}
-                                <span
-                                    className={`text-sm font-medium transition-colors duration-200 ${isActive
-                                        ? 'text-navy-700 font-bold text-gray-800'
-                                        : 'text-gray-600 group-hover:text-gray-900'
-                                        }`}
-                                >
-                                    {item.name}
-                                </span>
+                                <span>{item.name}</span>
                             </div>
                         );
                     })}
-                </div>
+                </nav>
 
-                {/* Generate Report Button */}
-                <div className="mx-auto mb-4 mt-auto space-y-3">
+                {/* Bottom actions */}
+                <div className="p-4 space-y-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                     <button
-                        className="flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white py-3 px-10 rounded-2xl transition-all shadow-lg shadow-indigo-500/20 w-full"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
+                        style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', boxShadow: '0 4px 16px rgba(79,70,229,0.35)' }}
                     >
-                        <Mail size={20} />
-                        <span className="font-medium text-sm cursor-pointer">Generate Report</span>
+                        <FileText size={16} />
+                        Generate Report
                     </button>
                     <button
                         onClick={logout}
-                        className="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 py-3 px-10 rounded-2xl transition-all shadow-sm w-full"
+                        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200"
+                        style={{ background: 'rgba(255,255,255,0.04)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.06)' }}
+                        onMouseEnter={e => { e.currentTarget.style.background='rgba(244,63,94,0.12)'; e.currentTarget.style.color='#fda4af'; }}
+                        onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.04)'; e.currentTarget.style.color='#94a3b8'; }}
                     >
-                        <LogOut size={20} />
-                        <span className="font-medium text-sm">Logout</span>
+                        <LogOut size={16} />
+                        Logout
                     </button>
                 </div>
             </div>

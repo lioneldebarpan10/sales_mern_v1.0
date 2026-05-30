@@ -28,18 +28,26 @@ async function getSummary(req, res) {
 
 async function getWeeklyAnalytics(req, res) {
    try {
+      // Use UTC-based week boundaries (Sun–Sat of current week)
       const now = new Date();
-      const startOfWeek = new Date(now);
-      startOfWeek.setHours(0, 0, 0, 0);
-      startOfWeek.setDate(now.getDate() - now.getDay());
-      const endOfWeek = new Date(startOfWeek);
-      endOfWeek.setDate(startOfWeek.getDate() + 6);
-      endOfWeek.setHours(23, 59, 59, 999);
+      const dayOfWeek = now.getUTCDay(); // 0=Sun, 6=Sat
+      const startOfWeek = new Date(Date.UTC(
+         now.getUTCFullYear(),
+         now.getUTCMonth(),
+         now.getUTCDate() - dayOfWeek,
+         0, 0, 0, 0
+      ));
+      const endOfWeek = new Date(Date.UTC(
+         now.getUTCFullYear(),
+         now.getUTCMonth(),
+         now.getUTCDate() - dayOfWeek + 6,
+         23, 59, 59, 999
+      ));
 
       const result = await paymentModel.aggregate([
          {
             $match: {
-               paymentDate: {
+               createdAt: {
                   $gte: startOfWeek,
                   $lte: endOfWeek
                }
@@ -47,7 +55,7 @@ async function getWeeklyAnalytics(req, res) {
          },
          {
             $group: {
-               _id: { $dayOfWeek: "$paymentDate" },
+               _id: { $dayOfWeek: "$createdAt" },
                total: { $sum: "$totalAmount" },
                paid: { $sum: "$paidAmount" },
                due: { $sum: "$dueAmount" }
@@ -66,13 +74,13 @@ async function getWeeklyAnalytics(req, res) {
 async function getMonthlyAnalytics(req, res) {
    try {
       const now = new Date();
-      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      const monthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      const monthEnd = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
 
       const result = await paymentModel.aggregate([
          {
             $match: {
-               paymentDate: {
+               createdAt: {
                   $gte: monthStart,
                   $lte: monthEnd
                }
@@ -85,7 +93,7 @@ async function getMonthlyAnalytics(req, res) {
                totalAmount: 1,
                weekOfMonth: {
                   $ceil: {
-                     $divide: [{ $dayOfMonth: "$paymentDate" }, 7]
+                     $divide: [{ $dayOfMonth: "$createdAt" }, 7]
                   }
                }
             }
@@ -111,13 +119,13 @@ async function getMonthlyAnalytics(req, res) {
 async function getYearlyAnalytics(req, res) {
    try {
       const now = new Date();
-      const yearStart = new Date(now.getFullYear(), 0, 1);
-      const yearEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+      const yearStart = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+      const yearEnd = new Date(Date.UTC(now.getUTCFullYear(), 11, 31, 23, 59, 59, 999));
 
       const result = await paymentModel.aggregate([
          {
             $match: {
-               paymentDate: {
+               createdAt: {
                   $gte: yearStart,
                   $lte: yearEnd
                }
@@ -125,7 +133,7 @@ async function getYearlyAnalytics(req, res) {
          },
          {
             $group: {
-               _id: { $month: "$paymentDate" },
+               _id: { $month: "$createdAt" },
                total: { $sum: "$totalAmount" },
                paid: { $sum: "$paidAmount" },
                due: { $sum: "$dueAmount" }
