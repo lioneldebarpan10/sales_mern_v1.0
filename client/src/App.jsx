@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar'
 import MainDashboard from './pages/MainDashboard'
 import AddSubStockist from './pages/AddSubStockist'
 import ViewSubStockist from './pages/ViewSubStockist'
+import SubstockistProfile from './pages/SubstockistProfile'
 import GeneratePayment from './pages/GeneratePayment'
 import Login from './pages/Login'
 import Footer from './components/Footer'
@@ -42,6 +43,7 @@ function App() {
           <Route path="/" element={<RequireAuth><MainDashboard /></RequireAuth>} />
           <Route path="/add-substockist" element={<RequireAuth><AddSubStockist /></RequireAuth>} />
           <Route path="/view-substockist" element={<RequireAuth><ViewSubStockist /></RequireAuth>} />
+          <Route path="/view-substockist/:id" element={<RequireAuth><SubstockistProfile /></RequireAuth>} />
           <Route path="/generate-payment" element={<RequireAuth><GeneratePayment /></RequireAuth>} />
           <Route path="*" element={<Navigate to={auth ? '/' : '/login'} replace />} />
         </Routes>

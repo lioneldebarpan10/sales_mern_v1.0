@@ -5,20 +5,37 @@ async function createPayment(req, res) {
 
    try {
 
-      const { substockistId, fromDate, toDate, totalAmount, paidAmount } = req.body
+      const { substockistId, stockistName, fromDate, toDate, totalAmount, paidAmount } = req.body
 
       // step -1 validate payment
-      if (!substockistId || !fromDate || !toDate || !totalAmount || paidAmount == null) {
+      if (!substockistId || !stockistName || !fromDate || !toDate || !totalAmount || paidAmount == null) {
          return res.status(400).json({
-            message: "All Fields are required"
+            message: "All fields are required"
          })
       }
 
-      // step - 2 check if substocist exists or not
-      const substockist = await substockistModel.findOne({ substockistId })
+      const fromDateObj = new Date(fromDate)
+      const toDateObj = new Date(toDate)
+      if (isNaN(fromDateObj.getTime()) || isNaN(toDateObj.getTime())) {
+         return res.status(400).json({ message: "Invalid from/to date" })
+      }
+
+      if (fromDateObj > toDateObj) {
+         return res.status(400).json({ message: "From Date cannot be after To Date" })
+      }
+
+      const normalizedId = String(substockistId).toUpperCase().trim()
+      const substockist = await substockistModel.findOne({ substockistId: normalizedId })
       if (!substockist) {
          return res.status(400).json({
             message: "Substockist not found"
+         })
+      }
+
+      const fullName = `${substockist.firstName} ${substockist.middleName ? substockist.middleName + ' ' : ''}${substockist.lastName}`.trim()
+      if (fullName.toLowerCase() !== String(stockistName).trim().toLowerCase()) {
+         return res.status(400).json({
+            message: "Substockist name does not match the selected ID"
          })
       }
 
@@ -33,11 +50,12 @@ async function createPayment(req, res) {
       // step -4 create payment
       const payment = await paymentModel.create({
          substockist: substockist._id,
-         fromDate,
-         toDate,
+         fromDate: fromDateObj,
+         toDate: toDateObj,
          totalAmount,
          paidAmount,
-         dueAmount
+         dueAmount,
+         paymentDate: toDateObj
       })
 
       res.status(201).json({

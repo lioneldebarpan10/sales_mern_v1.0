@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import api from '../services/api';
 
@@ -14,7 +15,7 @@ const ViewSubStockist = () => {
 
     try {
       const response = await api.get('/api/substockist', {
-        params: { search }
+        params: { search, t: Date.now() }
       });
       setSubstockists(response.data.data || []);
     } catch (err) {
@@ -54,6 +55,13 @@ const ViewSubStockist = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <button
+            type="button"
+            onClick={() => fetchSubstockists(searchTerm)}
+            className="h-12 rounded-xl bg-indigo-500 text-white px-5 text-sm font-medium hover:bg-indigo-600 transition"
+          >
+            Refresh
+          </button>
         </div>
 
         {loading ? (
@@ -70,6 +78,7 @@ const ViewSubStockist = () => {
                   <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Name</th>
                   <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Phone</th>
                   <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Email</th>
+                  <th className="py-4 px-4 text-sm font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -81,11 +90,19 @@ const ViewSubStockist = () => {
                       <td className="py-4 px-4 text-sm font-bold text-navy-700">{`${item.firstName} ${item.middleName ? item.middleName + ' ' : ''}${item.lastName}`}</td>
                       <td className="py-4 px-4 text-sm font-medium text-gray-600">{item.phone}</td>
                       <td className="py-4 px-4 text-sm font-medium text-gray-600">{item.email || '—'}</td>
+                      <td className="py-4 px-4 text-sm font-medium text-gray-600">
+                        <Link
+                          to={`/view-substockist/${item._id}`}
+                          className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600 transition"
+                        >
+                          View
+                        </Link>
+                      </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="py-10 text-center text-gray-500">
+                    <td colSpan="6" className="py-10 text-center text-gray-500">
                       No substockists found.
                     </td>
                   </tr>

@@ -1,4 +1,6 @@
-const substockistModel = require("../models/substockist.model")
+const mongoose = require("mongoose");
+const substockistModel = require("../models/substockist.model");
+const paymentModel = require("../models/payment.model");
 
 async function createSubstockist(req, res) {
    try {
@@ -48,7 +50,6 @@ async function createSubstockist(req, res) {
 }
 
 async function getAllSubstockists(req, res) {
-
    try {
       const { search } = req.query
       let query = {};
@@ -75,11 +76,120 @@ async function getAllSubstockists(req, res) {
       console.log("Fetch Substockist error: ", error.message)
       res.status(500).json({ message: "Internal Server error" })
    }
-
 }
 
+async function getSubstockistById(req, res) {
+   try {
+      const { id } = req.params;
+      let substockist = null;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+         substockist = await substockistModel.findById(id);
+      }
+      if (!substockist) {
+         substockist = await substockistModel.findOne({ substockistId: id.toUpperCase() });
+      }
+
+      if (!substockist) {
+         return res.status(404).json({ message: "Substockist not found" });
+      }
+
+      const now = new Date();
+      const yearStart = new Date(now.getFullYear(), 0, 1);
+      const yearEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+
+      const summaryResult = await paymentModel.aggregate([
+         {
+            $match: {
+               substockist: substockist._id,
+               paymentDate: {
+                  $gte: yearStart,
+                  $lte: yearEnd
+               }
+            }
+         },
+         {
+            $group: {
+               _id: null,
+               total: { $sum: "$totalAmount" },
+               paid: { $sum: "$paidAmount" },
+               due: { $sum: "$dueAmount" }
+            }
+         }
+      ]);
+
+      const weeklyHistory = await paymentModel.aggregate([
+         {
+            $match: {
+               substockist: substockist._id,
+               paymentDate: {
+                  $gte: yearStart,
+                  $lte: yearEnd
+               }
+            }
+         },
+         {
+            $project: {
+               paidAmount: 1,
+               dueAmount: 1,
+               totalAmount: 1,
+               weekOfYear: { $isoWeek: "$paymentDate" }
+            }
+         },
+         {
+            $group: {
+               _id: "$weekOfYear",
+               total: { $sum: "$totalAmount" },
+               paid: { $sum: "$paidAmount" },
+               due: { $sum: "$dueAmount" }
+            }
+         },
+         { $sort: { _id: 1 } }
+      ]);
+
+      const monthlyHistory = await paymentModel.aggregate([
+         {
+            $match: {
+               substockist: substockist._id,
+               paymentDate: {
+                  $gte: yearStart,
+                  $lte: yearEnd
+               }
+            }
+         },
+         {
+            $project: {
+               paidAmount: 1,
+               dueAmount: 1,
+               totalAmount: 1,
+               month: { $month: "$paymentDate" }
+            }
+         },
+         {
+            $group: {
+               _id: "$month",
+               total: { $sum: "$totalAmount" },
+               paid: { $sum: "$paidAmount" },
+               due: { $sum: "$dueAmount" }
+            }
+         },
+         { $sort: { _id: 1 } }
+      ]);
+
+      res.status(200).json({
+         substockist,
+         summary: summaryResult[0] || { total: 0, paid: 0, due: 0 },
+         weeklyHistory,
+         monthlyHistory
+      });
+   } catch (error) {
+      console.log("Get Substockist Profile Error:", error.message);
+      res.status(500).json({ message: "Internal Server error" });
+   }
+}
 
 module.exports = {
    createSubstockist,
-   getAllSubstockists
+   getAllSubstockists,
+   getSubstockistById
 }

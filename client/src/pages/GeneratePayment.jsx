@@ -8,13 +8,15 @@ const GeneratePayment = () => {
     const [formData, setFormData] = useState({
         stockistName: '',
         stockistId: '',
-        paymentDate: today,
+        fromDate: today,
+        toDate: today,
         totalPayment: '',
         paidPayment: '',
         duePayment: 0
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [idLookupError, setIdLookupError] = useState('');
 
     // Auto-calculate Due Payment whenever Total or Paid changes
     useEffect(() => {
@@ -35,21 +37,60 @@ const GeneratePayment = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            const id = formData.stockistId.trim();
+            if (!id) {
+                setIdLookupError('');
+                return;
+            }
+
+            try {
+                const response = await api.get(`/api/substockist/${id}`);
+                const substockist = response.data.substockist;
+                const fullName = `${substockist.firstName} ${substockist.middleName ? substockist.middleName + ' ' : ''}${substockist.lastName}`.trim();
+                setFormData(prev => ({ ...prev, stockistName: fullName }));
+                setIdLookupError('');
+            } catch (err) {
+                setIdLookupError('Substockist ID not found');
+            }
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [formData.stockistId]);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (idLookupError) {
+            setError(idLookupError);
+            return;
+        }
 
         if (parseFloat(formData.totalPayment) <= 0) {
             setError('Total payment must be greater than 0');
             return;
         }
 
+        if (!formData.stockistName.trim()) {
+            setError('Substockist name is required');
+            return;
+        }
+
         setLoading(true);
         try {
+            if (new Date(formData.fromDate) > new Date(formData.toDate)) {
+                setError('From date cannot be after To date');
+                setLoading(false);
+                return;
+            }
+
             await api.post('/api/payment', {
+                stockistName: formData.stockistName,
                 substockistId: formData.stockistId,
-                fromDate: formData.paymentDate,
-                toDate: formData.paymentDate,
+                fromDate: formData.fromDate,
+                toDate: formData.toDate,
                 totalAmount: parseFloat(formData.totalPayment),
                 paidAmount: parseFloat(formData.paidPayment)
             });
@@ -97,6 +138,9 @@ const GeneratePayment = () => {
                                     className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
                                     placeholder="Enter Name"
                                 />
+                        {idLookupError && (
+                            <p className="text-xs text-red-600 mt-2">{idLookupError}</p>
+                        )}
                             </div>
                         </div>
 
@@ -121,10 +165,10 @@ const GeneratePayment = () => {
                             </div>
                         </div>
 
-                        {/* Date of Payment (Locked to Today) */}
+                        {/* From Date */}
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Date of Payment <span className="text-red-500">*</span>
+                                From Date <span className="text-red-500">*</span>
                             </label>
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -132,12 +176,32 @@ const GeneratePayment = () => {
                                 </div>
                                 <input
                                     type="date"
-                                    name="paymentDate"
-                                    value={formData.paymentDate}
-                                    readOnly
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-500 cursor-not-allowed outline-none"
+                                    name="fromDate"
+                                    value={formData.fromDate}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
                                 />
-                                <p className="text-xs text-gray-400 mt-1 ml-1">Date is locked to current date</p>
+                            </div>
+                        </div>
+
+                        {/* To Date */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                To Date <span className="text-red-500">*</span>
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Calendar size={18} className="text-gray-400" />
+                                </div>
+                                <input
+                                    type="date"
+                                    name="toDate"
+                                    value={formData.toDate}
+                                    onChange={handleChange}
+                                    required
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all placeholder-gray-400"
+                                />
                             </div>
                         </div>
 

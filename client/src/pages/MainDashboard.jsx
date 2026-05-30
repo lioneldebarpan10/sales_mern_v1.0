@@ -22,13 +22,19 @@ const DashboardCard = ({ title, value, icon, subtitle, color, className = "" }) 
 
 const MainDashboard = () => {
     const [chartPeriod, setChartPeriod] = useState("Weekly");
-    const [summary, setSummary] = useState({ total: 0, paid: 0, due: 0 });
+    const [summary, setSummary] = useState({ total: 0, paid: 0, due: 0, activeCount: 0 });
+    const [chartData, setChartData] = useState({ categories: [], series: [] });
 
     useEffect(() => {
         const fetchSummary = async () => {
             try {
                 const response = await api.get('/api/analytics/summary');
-                setSummary(response.data.data || { total: 0, paid: 0, due: 0 });
+                setSummary({
+                    total: response.data.data?.total || 0,
+                    paid: response.data.data?.paid || 0,
+                    due: response.data.data?.due || 0,
+                    activeCount: response.data.activeCount || 0
+                });
             } catch (error) {
                 console.error('Failed to load dashboard summary', error);
             }
@@ -37,35 +43,78 @@ const MainDashboard = () => {
         fetchSummary();
     }, []);
 
-    // Mock Data for Charts
-    const chartData = {
-        Weekly: {
-            categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            series: [
-                { name: 'Total Payment', data: [2000, 1500, 3000, 2500, 4000, 3500, 5000] },
-                { name: 'Paid Payment', data: [1500, 1000, 2500, 2000, 3500, 3000, 4500] },
-                { name: 'Due Payment', data: [500, 500, 500, 500, 500, 500, 500] }
-            ]
-        },
-        Monthly: {
-            categories: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-            series: [
-                { name: 'Total Payment', data: [12000, 15000, 10000, 18000] },
-                { name: 'Paid Payment', data: [10000, 12000, 8000, 15000] },
-                { name: 'Due Payment', data: [2000, 3000, 2000, 3000] }
-            ]
-        },
-        Yearly: {
-            categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            series: [
-                { name: 'Total Payment', data: [45000, 50000, 48000, 55000, 60000, 58000, 65000, 70000, 75000, 80000, 85000, 90000] },
-                { name: 'Paid Payment', data: [40000, 45000, 42000, 50000, 55000, 50000, 60000, 65000, 70000, 75000, 80000, 85000] },
-                { name: 'Due Payment', data: [5000, 5000, 6000, 5000, 5000, 8000, 5000, 5000, 5000, 5000, 5000, 5000] }
-            ]
-        }
-    };
+    useEffect(() => {
+        const fetchChartData = async () => {
+            try {
+                const period = chartPeriod.toLowerCase();
+                const response = await api.get(`/api/analytics/${period}`);
+                const data = response.data.data || [];
+                let categories = [];
+                const seriesTotal = [];
+                const seriesPaid = [];
+                const seriesDue = [];
 
-    const currentChartData = chartData[chartPeriod];
+                if (chartPeriod === 'Weekly') {
+                    categories = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    const totals = Array(7).fill(0);
+                    const paid = Array(7).fill(0);
+                    const due = Array(7).fill(0);
+                    data.forEach((item) => {
+                        const idx = item._id - 1;
+                        if (idx >= 0 && idx < 7) {
+                            totals[idx] = item.total || 0;
+                            paid[idx] = item.paid || 0;
+                            due[idx] = item.due || 0;
+                        }
+                    });
+                    seriesTotal.push({ name: 'Total Payment', data: totals });
+                    seriesPaid.push({ name: 'Paid Payment', data: paid });
+                    seriesDue.push({ name: 'Due Payment', data: due });
+                } else if (chartPeriod === 'Monthly') {
+                    categories = ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'];
+                    const totals = Array(5).fill(0);
+                    const paid = Array(5).fill(0);
+                    const due = Array(5).fill(0);
+                    data.forEach((item) => {
+                        const idx = item._id - 1;
+                        if (idx >= 0 && idx < 5) {
+                            totals[idx] = item.total || 0;
+                            paid[idx] = item.paid || 0;
+                            due[idx] = item.due || 0;
+                        }
+                    });
+                    seriesTotal.push({ name: 'Total Payment', data: totals });
+                    seriesPaid.push({ name: 'Paid Payment', data: paid });
+                    seriesDue.push({ name: 'Due Payment', data: due });
+                } else {
+                    categories = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const totals = Array(12).fill(0);
+                    const paid = Array(12).fill(0);
+                    const due = Array(12).fill(0);
+                    data.forEach((item) => {
+                        const idx = item._id - 1;
+                        if (idx >= 0 && idx < 12) {
+                            totals[idx] = item.total || 0;
+                            paid[idx] = item.paid || 0;
+                            due[idx] = item.due || 0;
+                        }
+                    });
+                    seriesTotal.push({ name: 'Total Payment', data: totals });
+                    seriesPaid.push({ name: 'Paid Payment', data: paid });
+                    seriesDue.push({ name: 'Due Payment', data: due });
+                }
+
+                setChartData({ categories, series: [...seriesTotal, ...seriesPaid, ...seriesDue] });
+            } catch (error) {
+                console.error('Failed to load revenue analytics', error);
+                setChartData({ categories: [], series: [] });
+            }
+        };
+
+        fetchChartData();
+    }, [chartPeriod]);
+
+    const currentChartData = chartData;
 
     const chartOptions = {
         chart: {
@@ -157,16 +206,10 @@ const MainDashboard = () => {
                     <div className="bg-indigo-50 p-6 rounded-full mb-4 border border-blue-200">
                         <Users size={48} className="text-indigo-500" />
                     </div>
-                    <h3 className="text-4xl font-bold text-gray-700 mb-2">20+</h3>
+                    <h3 className="text-4xl font-bold text-gray-700 mb-2">{summary.activeCount}</h3>
                     <p className="text-gray-500 font-medium text-lg">Active Substockists</p>
-                    <div className="mt-8 w-full">
-                        <div className="flex items-center justify-between text-sm text-gray-500 mb-2">
-                            <span>Goal</span>
-                            <span>85%</span>
-                        </div>
-                        <div className="w-full bg-gray-100 border border-gray-200 rounded-full h-2">
-                            <div className="bg-indigo-500 h-2 rounded-full" style={{ width: '85%' }}></div>
-                        </div>
+                    <div className="mt-6 text-sm text-gray-500">
+                        <p>{summary.activeCount === 0 ? 'No active substockists yet' : `${summary.activeCount} total active substockists`}</p>
                     </div>
                 </div>
 
