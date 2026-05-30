@@ -1,33 +1,19 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, MapPin, Phone, Mail, Calendar, Hash, Users, ArrowRight, CheckCircle, X } from 'lucide-react';
+import { User, MapPin, Phone, Mail, Calendar, Hash, Users, ArrowRight } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../services/api';
-
-/* ── Toast ── */
-const Toast = ({ toasts, remove }) => (
-    <div className="toast-container">
-        {toasts.map(t => (
-            <div key={t.id} className={`toast toast-${t.type}`}>
-                {t.type === 'success' ? <CheckCircle size={16} /> : <X size={16} />}
-                <span className="flex-1">{t.message}</span>
-                <button onClick={() => remove(t.id)} style={{ background:'none', border:'none', cursor:'pointer', opacity:0.6 }}>
-                    <X size={14} />
-                </button>
-            </div>
-        ))}
-    </div>
-);
 
 /* ── Field ── */
 const Field = ({ label, optional, icon, children }) => (
     <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#64748b' }}>
+        <label className="block text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#94a3b8' }}>
             {label} {optional
-                ? <span className="normal-case text-xs font-normal" style={{ color: '#94a3b8' }}>(Optional)</span>
+                ? <span className="normal-case text-xs font-normal" style={{ color: '#64748b' }}>(Optional)</span>
                 : <span style={{ color: '#f43f5e' }}>*</span>}
         </label>
         <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" style={{ color: '#94a3b8' }}>
+            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" style={{ color: '#64748b' }}>
                 {icon}
             </span>
             {children}
@@ -37,9 +23,9 @@ const Field = ({ label, optional, icon, children }) => (
 
 const inputCls = 'w-full pl-10 pr-4 py-3 text-sm rounded-xl transition-all duration-200 outline-none';
 const inputStyle = {
-    border: '1.5px solid #e2e8f0',
-    background: '#f8fafc',
-    color: '#1e293b',
+    border: '1.5px solid rgba(255,255,255,0.1)',
+    background: '#0f172a',
+    color: '#f1f5f9',
     fontFamily: 'Inter,sans-serif',
 };
 
@@ -51,26 +37,17 @@ const AddSubStockist = () => {
         creationDate: new Date().toISOString().split('T')[0],
     });
     const [loading, setLoading] = useState(false);
-    const [toasts, setToasts] = useState([]);
-
-    const addToast = useCallback((message, type = 'success') => {
-        const id = Date.now();
-        setToasts(prev => [...prev, { id, message, type }]);
-        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
-    }, []);
-
-    const removeToast = useCallback(id => setToasts(prev => prev.filter(t => t.id !== id)), []);
 
     const handleChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
     const handleFocus = e => {
-        e.target.style.borderColor = '#4f46e5';
-        e.target.style.background = '#fff';
-        e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.1)';
+        e.target.style.borderColor = '#818cf8';
+        e.target.style.background = '#0f172a';
+        e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.2)';
     };
     const handleBlur = e => {
-        e.target.style.borderColor = '#e2e8f0';
-        e.target.style.background = '#f8fafc';
+        e.target.style.borderColor = 'rgba(255,255,255,0.1)';
+        e.target.style.background = '#0f172a';
         e.target.style.boxShadow = 'none';
     };
 
@@ -87,10 +64,10 @@ const AddSubStockist = () => {
                 email: formData.email,
                 address: formData.address,
             });
-            addToast('Substockist added successfully!', 'success');
+            toast.success('Substockist added successfully!');
             setTimeout(() => navigate('/view-substockist'), 1200);
         } catch (err) {
-            addToast(err.response?.data?.message || 'Failed to create substockist', 'error');
+            toast.error(err.response?.data?.message || 'Failed to create substockist');
         } finally {
             setLoading(false);
         }
@@ -98,7 +75,6 @@ const AddSubStockist = () => {
 
     return (
         <div className="animate-fade-in">
-            <Toast toasts={toasts} remove={removeToast} />
 
             {/* Page header */}
             <div className="page-header mb-8">
@@ -171,12 +147,14 @@ const AddSubStockist = () => {
 
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4"
-                        style={{ borderTop: '1px solid #f1f5f9' }}>
+                        style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                         <button
                             type="button"
                             onClick={() => navigate('/view-substockist')}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
-                            style={{ background: '#f1f5f9', color: '#475569', border: '1.5px solid #e2e8f0' }}
+                            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer"
+                            style={{ background: '#0f172a', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.08)' }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#818cf8'; e.currentTarget.style.color = '#f1f5f9'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#94a3b8'; }}
                         >
                             <Users size={16} />
                             View All Substockists

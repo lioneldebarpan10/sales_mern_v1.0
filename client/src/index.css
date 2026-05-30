@@ -4,18 +4,18 @@
 
 /* ── Design Tokens ─────────────────────────────────── */
 :root {
-  --clr-primary:       #4f46e5;
-  --clr-primary-dark:  #3730a3;
+  --clr-primary:       #6366f1;
+  --clr-primary-dark:  #4f46e5;
   --clr-primary-light: #818cf8;
-  --clr-purple:        #7c3aed;
+  --clr-purple:        #8b5cf6;
   --clr-sidebar-bg:    #0f172a;
-  --clr-sidebar-hover: #1e293b;
-  --clr-sidebar-active:#4f46e5;
+  --clr-sidebar-hover: rgba(255,255,255,0.06);
+  --clr-sidebar-active:#6366f1;
   --clr-emerald:       #10b981;
   --clr-rose:          #f43f5e;
   --radius-card:       1.5rem;
-  --shadow-card:       0 4px 24px rgba(15,23,42,0.08);
-  --shadow-card-hover: 0 8px 40px rgba(79,70,229,0.18);
+  --shadow-card:       0 8px 32px rgba(0,0,0,0.25);
+  --shadow-card-hover: 0 12px 48px rgba(99,102,241,0.2);
   --transition-base:   all 0.22s cubic-bezier(0.4,0,0.2,1);
 }
 
@@ -26,8 +26,8 @@
 }
 
 body {
-  background: #f1f5f9;
-  color: #1e293b;
+  background: #161f30;
+  color: #f1f5f9;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -80,10 +80,10 @@ body {
 .animate-count-up   { animation: countUp   0.5s ease forwards; }
 
 .card {
-  background: #ffffff;
+  background: #1e293b;
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  border: 1px solid rgba(226,232,240,0.8);
+  border: 1px solid rgba(255,255,255,0.06);
   transition: var(--transition-base);
 }
 .card:hover {
@@ -122,9 +122,9 @@ body {
 .skeleton {
   background: linear-gradient(
     90deg,
-    #e2e8f0 25%,
-    #f1f5f9 50%,
-    #e2e8f0 75%
+    #1e293b 25%,
+    #334155 50%,
+    #1e293b 75%
   );
   background-size: 600px 100%;
   animation: shimmer 1.5s infinite linear;
@@ -136,19 +136,19 @@ body {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.75rem;
   border-radius: 0.875rem;
-  border: 1.5px solid #e2e8f0;
-  background: #f8fafc;
+  border: 1.5px solid rgba(255,255,255,0.1);
+  background: #0f172a;
   font-size: 0.875rem;
-  color: #1e293b;
+  color: #f1f5f9;
   outline: none;
   transition: var(--transition-base);
 }
 .input-field:focus {
-  border-color: var(--clr-primary);
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.12);
+  border-color: var(--clr-primary-light);
+  background: #0f172a;
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
 }
-.input-field::placeholder { color: #94a3b8; }
+.input-field::placeholder { color: #64748b; }
 
 /* ── Status Badges ──────────────────────────────────── */
 .badge {
@@ -198,7 +198,7 @@ body {
 
 /* ── Table ──────────────────────────────────────────── */
 .premium-table thead tr {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
 }
 .premium-table th {
   padding: 0.875rem 1rem;
@@ -206,20 +206,20 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #64748b;
-  border-bottom: 2px solid #e2e8f0;
+  color: #94a3b8;
+  border-bottom: 2px solid rgba(255,255,255,0.08);
 }
 .premium-table td {
   padding: 0.875rem 1rem;
   font-size: 0.875rem;
-  color: #334155;
-  border-bottom: 1px solid #f1f5f9;
+  color: #f1f5f9;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 .premium-table tbody tr {
   transition: var(--transition-base);
 }
 .premium-table tbody tr:hover {
-  background: linear-gradient(135deg, #eef2ff 0%, #faf5ff 100%);
+  background: linear-gradient(135deg, #1e293b 0%, #273549 100%);
 }
 
 /* ── Page Header ────────────────────────────────────── */
@@ -254,9 +254,9 @@ body {
 
 /* ── Scrollbar ──────────────────────────────────────── */
 .custom-scrollbar::-webkit-scrollbar        { height: 6px; width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track  { background: #f1f5f9; border-radius: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb  { background: #c7d2fe; border-radius: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #818cf8; }
+.custom-scrollbar::-webkit-scrollbar-track  { background: #0f172a; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb  { background: #334155; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
 
 /* ── Sidebar ────────────────────────────────────────── */
 .sidebar-link {

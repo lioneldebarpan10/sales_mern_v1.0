@@ -76,34 +76,36 @@ const SubstockistProfile = () => {
     chart: {
       toolbar: { show: false }
     },
-    colors: ['#2563eb', '#10b981', '#ef4444'],
+    colors: ['#6366f1', '#10b981', '#f43f5e'],
     stroke: { curve: 'smooth', width: 3 },
     markers: { size: 4 },
     dataLabels: { enabled: false },
     xaxis: {
       categories: chartCategories,
-      labels: { style: { colors: '#64748b' } }
+      labels: { style: { colors: '#94a3b8' } }
     },
     yaxis: {
-      labels: { formatter: (value) => `$${value}` }
+      labels: { style: { colors: '#94a3b8' }, formatter: (value) => `$${value}` }
     },
     tooltip: {
+      theme: 'dark',
       y: { formatter: (value) => `$${value}` }
     },
-    legend: { position: 'top' }
+    legend: { position: 'top', labels: { colors: '#94a3b8' } },
+    grid: { show: true, borderColor: 'rgba(255,255,255,0.06)', strokeDashArray: 4 }
   };
 
   return (
     <div className="p-2">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-3xl font-bold text-gray-700 dark:text-gray-700">Substockist Profile</h2>
-          <p className="text-sm text-gray-500 mt-2">Detailed payment history and outstanding amounts for the selected substockist.</p>
+          <h2 className="text-3xl font-bold text-white">Substockist Profile</h2>
+          <p className="text-sm text-slate-400 mt-2">Detailed payment history and outstanding amounts for the selected substockist.</p>
         </div>
         <div className="flex items-center gap-3">
           <Link
             to="/view-substockist"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200 text-slate-700 hover:bg-slate-300 transition"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#0f172a] text-slate-300 border border-[rgba(255,255,255,0.08)] hover:bg-[#1e293b] transition cursor-pointer"
           >
             <ArrowLeft size={16} /> Back to list
           </Link>
@@ -111,91 +113,91 @@ const SubstockistProfile = () => {
       </div>
 
       {loading ? (
-        <div className="rounded-3xl bg-white p-10 text-center text-gray-500 shadow-[0px_3px_14px_rgba(226,225,249,0.98)]">Loading profile...</div>
+        <div className="rounded-3xl bg-[#1e293b] p-10 text-center text-slate-400 border border-[rgba(255,255,255,0.06)] shadow-none">Loading profile...</div>
       ) : error ? (
-        <div className="rounded-3xl bg-white p-10 text-center text-red-600 shadow-[0px_3px_14px_rgba(226,225,249,0.98)]">{error}</div>
+        <div className="rounded-3xl bg-[rgba(244,63,94,0.12)] p-10 text-center text-rose-400 border border-[rgba(244,63,94,0.25)] shadow-none">{error}</div>
       ) : (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-[1.5fr_1fr] gap-6 mb-8">
-            <div className="rounded-3xl bg-white p-6 shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-700 mb-6">Substockist Details</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-600">
+            <div className="rounded-3xl bg-[#1e293b] p-6 shadow-none border border-[rgba(255,255,255,0.06)]">
+              <h3 className="text-xl font-semibold text-slate-100 mb-6">Substockist Details</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-slate-300">
                 <div>
-                  <p className="text-xs uppercase text-gray-400 mb-2">ID</p>
-                  <p className="font-semibold text-gray-800">{substockist.substockistId}</p>
+                  <p className="text-xs uppercase text-slate-500 mb-2">ID</p>
+                  <p className="font-semibold text-slate-100">{substockist.substockistId}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase text-gray-400 mb-2">Name</p>
-                  <p className="font-semibold text-gray-800">{`${substockist.firstName} ${substockist.middleName ? substockist.middleName + ' ' : ''}${substockist.lastName}`}</p>
+                  <p className="text-xs uppercase text-slate-500 mb-2">Name</p>
+                  <p className="font-semibold text-slate-100">{`${substockist.firstName} ${substockist.middleName ? substockist.middleName + ' ' : ''}${substockist.lastName}`}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase text-gray-400 mb-2">Phone</p>
-                  <p className="font-semibold text-gray-800">{substockist.phone}</p>
+                  <p className="text-xs uppercase text-slate-500 mb-2">Phone</p>
+                  <p className="font-semibold text-slate-100">{substockist.phone}</p>
                 </div>
                 <div>
-                  <p className="text-xs uppercase text-gray-400 mb-2">Email</p>
-                  <p className="font-semibold text-gray-800">{substockist.email || 'Not provided'}</p>
+                  <p className="text-xs uppercase text-slate-500 mb-2">Email</p>
+                  <p className="font-semibold text-slate-100">{substockist.email || 'Not provided'}</p>
                 </div>
                 <div className="sm:col-span-2">
-                  <p className="text-xs uppercase text-gray-400 mb-2">Address</p>
-                  <p className="font-semibold text-gray-800">{substockist.address || 'Not provided'}</p>
+                  <p className="text-xs uppercase text-slate-500 mb-2">Address</p>
+                  <p className="font-semibold text-slate-100">{substockist.address || 'Not provided'}</p>
                 </div>
               </div>
             </div>
 
-            <div className="rounded-3xl bg-white p-6 shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
-              <h3 className="text-xl font-semibold text-gray-700 mb-6">Payment Summary</h3>
+            <div className="rounded-3xl bg-[#1e293b] p-6 shadow-none border border-[rgba(255,255,255,0.06)]">
+              <h3 className="text-xl font-semibold text-slate-100 mb-6">Payment Summary</h3>
               <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-center gap-3 p-4 rounded-3xl bg-blue-50 border border-blue-100">
-                  <div className="rounded-2xl bg-blue-500 p-3 text-white"><DollarSign size={20} /></div>
+                <div className="flex items-center gap-3 p-4 rounded-3xl bg-[rgba(99,102,241,0.1)] border border-[rgba(99,102,241,0.2)]">
+                  <div className="rounded-2xl bg-indigo-500 p-3 text-white"><DollarSign size={20} /></div>
                   <div>
-                    <p className="text-xs uppercase text-blue-600">Total Amount</p>
-                    <p className="text-2xl font-semibold text-blue-900">${summary.total.toLocaleString()}</p>
+                    <p className="text-xs uppercase text-indigo-400 font-semibold">Total Amount</p>
+                    <p className="text-2xl font-semibold text-white">${summary.total.toLocaleString()}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 rounded-3xl bg-emerald-50 border border-emerald-100">
+                <div className="flex items-center gap-3 p-4 rounded-3xl bg-[rgba(16,185,129,0.1)] border border-[rgba(16,185,129,0.2)]">
                   <div className="rounded-2xl bg-emerald-500 p-3 text-white"><CheckCircle2 size={20} /></div>
                   <div>
-                    <p className="text-xs uppercase text-emerald-600">Paid Amount</p>
-                    <p className="text-2xl font-semibold text-emerald-900">${summary.paid.toLocaleString()}</p>
+                    <p className="text-xs uppercase text-emerald-400 font-semibold">Paid Amount</p>
+                    <p className="text-2xl font-semibold text-white">${summary.paid.toLocaleString()}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 p-4 rounded-3xl bg-rose-50 border border-rose-100">
+                <div className="flex items-center gap-3 p-4 rounded-3xl bg-[rgba(244,63,94,0.1)] border border-[rgba(244,63,94,0.2)]">
                   <div className="rounded-2xl bg-rose-500 p-3 text-white"><Clock size={20} /></div>
                   <div>
-                    <p className="text-xs uppercase text-rose-600">Due Amount</p>
-                    <p className="text-2xl font-semibold text-rose-900">${summary.due.toLocaleString()}</p>
+                    <p className="text-xs uppercase text-rose-400 font-semibold">Due Amount</p>
+                    <p className="text-2xl font-semibold text-white">${summary.due.toLocaleString()}</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
+          <div className="rounded-3xl bg-[#1e293b] p-6 shadow-none border border-[rgba(255,255,255,0.06)]">
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
               <div>
-                <p className="text-sm text-gray-500 uppercase tracking-[0.2em]">Date-range analytics</p>
-                <h3 className="text-xl font-semibold text-gray-700">Substockist payment history</h3>
+                <p className="text-sm text-slate-400 uppercase tracking-[0.2em]">Date-range analytics</p>
+                <h3 className="text-xl font-semibold text-slate-100">Substockist payment history</h3>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className="text-sm text-gray-500">
+                  <label className="text-sm text-slate-400">
                     From
                     <input
                       type="date"
                       value={fromDate}
                       onChange={(e) => setFromDate(e.target.value)}
-                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                      className="mt-1 block w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0f172a] text-slate-100 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 outline-none"
                     />
                   </label>
-                  <label className="text-sm text-gray-500">
+                  <label className="text-sm text-slate-400">
                     To
                     <input
                       type="date"
                       value={toDate}
                       onChange={(e) => setToDate(e.target.value)}
-                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                      className="mt-1 block w-full rounded-xl border border-[rgba(255,255,255,0.1)] bg-[#0f172a] text-slate-100 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-900 outline-none"
                     />
                   </label>
                 </div>
@@ -205,7 +207,7 @@ const SubstockistProfile = () => {
                       key={option}
                       type="button"
                       onClick={() => setPeriod(option)}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${period === option ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition cursor-pointer ${period === option ? 'bg-indigo-500 text-white' : 'bg-[#0f172a] text-slate-300 border border-[rgba(255,255,255,0.06)] hover:bg-[#1e293b]'}`}
                     >
                       {option.charAt(0).toUpperCase() + option.slice(1)}
                     </button>
@@ -222,7 +224,7 @@ const SubstockistProfile = () => {
             />
 
             {history.length === 0 && (
-              <div className="mt-6 rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-gray-600">
+              <div className="mt-6 rounded-3xl border border-dashed border-[rgba(255,255,255,0.08)] bg-[#0f172a] p-6 text-center text-slate-400">
                 No payments found for the selected date range.
               </div>
             )}

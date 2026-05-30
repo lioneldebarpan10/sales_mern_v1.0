@@ -57,7 +57,7 @@ const StatCard = ({ title, value, prefix, icon, gradient, delay = 0, badge }) =>
         </div>
         <div>
             <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>{title}</p>
-            <h4 className="text-2xl font-bold animate-count-up" style={{ color: '#0f172a' }}>
+            <h4 className="text-2xl font-bold animate-count-up" style={{ color: '#f8fafc' }}>
                 <AnimatedNumber value={value} prefix={prefix} />
             </h4>
         </div>
@@ -71,6 +71,8 @@ const MainDashboard = () => {
     const [currentIST, setCurrentIST] = useState('');
     const [loadingSummary, setLoadingSummary] = useState(true);
     const [loadingChart, setLoadingChart] = useState(true);
+    const [latestPayments, setLatestPayments] = useState([]);
+    const [loadingPayments, setLoadingPayments] = useState(true);
 
     useEffect(() => {
         const fmt = () => {
@@ -137,6 +139,23 @@ const MainDashboard = () => {
         fetchChart();
     }, [chartPeriod]);
 
+    useEffect(() => {
+        const fetchLatestPayments = async () => {
+            setLoadingPayments(true);
+            try {
+                const res = await api.get('/api/payment', {
+                    params: { page: 1, limit: 5 }
+                });
+                setLatestPayments(res.data.data || []);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoadingPayments(false);
+            }
+        };
+        fetchLatestPayments();
+    }, []);
+
     const chartOptions = {
         chart: { type: 'bar', toolbar: { show: false }, background: 'transparent', fontFamily: 'Inter,sans-serif' },
         colors: ['#4f46e5', '#10b981', '#f43f5e'],
@@ -158,11 +177,11 @@ const MainDashboard = () => {
         },
         fill: {
             type: 'gradient',
-            gradient: { shade: 'light', type: 'vertical', shadeIntensity: 0.15, opacityFrom: 1, opacityTo: 0.85 },
+            gradient: { shade: 'dark', type: 'vertical', shadeIntensity: 0.15, opacityFrom: 1, opacityTo: 0.85 },
         },
-        tooltip: { y: { formatter: val => `$${val.toLocaleString()}` }, theme: 'light' },
-        grid: { show: true, borderColor: '#f1f5f9', strokeDashArray: 4 },
-        legend: { position: 'top', horizontalAlign: 'right', fontWeight: 600, fontSize: '13px', labels: { colors: '#475569' } },
+        tooltip: { y: { formatter: val => `$${val.toLocaleString()}` }, theme: 'dark' },
+        grid: { show: true, borderColor: 'rgba(255,255,255,0.06)', strokeDashArray: 4 },
+        legend: { position: 'top', horizontalAlign: 'right', fontWeight: 600, fontSize: '13px', labels: { colors: '#94a3b8' } },
     };
 
     const statCards = [
@@ -195,57 +214,131 @@ const MainDashboard = () => {
                 </div>
             </div>
 
-            {/* ── Top row: big substockist card + 3 stat cards ── */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5 mb-6">
-                {/* Big substockist card */}
-                <div
-                    className="xl:col-span-2 card animate-slide-up p-6 flex flex-col justify-between"
-                    style={{
-                        background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%)',
-                        border: '1px solid rgba(79,70,229,0.2)',
-                        boxShadow: '0 8px 32px rgba(79,70,229,0.15)',
-                    }}
-                >
-                    <div>
-                        <div
-                            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5"
-                            style={{ background: 'linear-gradient(135deg,rgba(79,70,229,0.3),rgba(124,58,237,0.2))', border: '1px solid rgba(79,70,229,0.3)' }}
-                        >
-                            <Users size={30} color="#818cf8" />
-                        </div>
-                        <h3
-                            className="text-5xl font-bold mb-1 animate-count-up"
-                            style={{ background: 'linear-gradient(135deg,#818cf8,#a78bfa)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}
-                        >
-                            {loadingSummary ? '—' : <AnimatedNumber value={summary.activeCount} />}
-                        </h3>
-                        <p className="text-base font-semibold" style={{ color: '#c7d2fe' }}>Active Substockists</p>
-                        <p className="text-sm mt-3" style={{ color: 'rgba(199,210,254,0.55)' }}>
-                            Live partner count with real-time dashboard status.
-                        </p>
+            {/* ── Top row: Left stats column + Right latest payments history column ── */}
+            <div className="grid grid-cols-1 xl:grid-cols-5 gap-5 mb-6">
+                {/* Left side (3 columns): Stats & Active Substockist */}
+                <div className="xl:col-span-3 flex flex-col gap-5">
+                    {/* Row of 3 stat cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                        {loadingSummary ? (
+                            [0,1,2].map(i => (
+                                <div key={i} className="card p-5 flex flex-col gap-4">
+                                    <Skeleton className="w-12 h-12" />
+                                    <div className="space-y-2">
+                                        <Skeleton className="h-3 w-24" />
+                                        <Skeleton className="h-7 w-32" />
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            statCards.map((c, i) => (
+                                <StatCard key={c.title} {...c} delay={i * 80} />
+                            ))
+                        )}
                     </div>
-                    <div className="mt-6 pt-4 flex items-center gap-2" style={{ borderTop: '1px solid rgba(79,70,229,0.2)' }}>
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-xs font-medium" style={{ color: '#6ee7b7' }}>Live data</span>
+
+                    {/* Active Substockists card */}
+                    <div
+                        className="card animate-slide-up p-6 flex flex-col justify-between flex-1"
+                        style={{
+                            background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%)',
+                            border: '1px solid rgba(79,70,229,0.2)',
+                            boxShadow: '0 8px 32px rgba(79,70,229,0.15)',
+                        }}
+                    >
+                        <div>
+                            <div
+                                className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4"
+                                style={{ background: 'linear-gradient(135deg,rgba(79,70,229,0.3),rgba(124,58,237,0.2))', border: '1px solid rgba(79,70,229,0.3)' }}
+                            >
+                                <Users size={24} color="#818cf8" />
+                            </div>
+                            <div className="flex items-baseline gap-2">
+                                <h3
+                                    className="text-4xl font-bold mb-1 animate-count-up"
+                                    style={{ background: 'linear-gradient(135deg,#818cf8,#a78bfa)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}
+                                >
+                                    {loadingSummary ? '—' : <AnimatedNumber value={summary.activeCount} />}
+                                </h3>
+                                <p className="text-base font-semibold" style={{ color: '#c7d2fe' }}>Active Substockists</p>
+                            </div>
+                            <p className="text-xs mt-2" style={{ color: 'rgba(199,210,254,0.55)' }}>
+                                Live partner count with real-time dashboard status.
+                            </p>
+                        </div>
+                        <div className="mt-4 pt-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(79,70,229,0.2)' }}>
+                            <div className="flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="text-xs font-medium" style={{ color: '#6ee7b7' }}>Live data</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Stat cards */}
-                {loadingSummary ? (
-                    [0,1,2].map(i => (
-                        <div key={i} className="card p-5 flex flex-col gap-4">
-                            <Skeleton className="w-12 h-12" />
-                            <div className="space-y-2">
-                                <Skeleton className="h-3 w-24" />
-                                <Skeleton className="h-7 w-32" />
-                            </div>
+                {/* Right side (2 columns): Latest 5 Payments History Box */}
+                <div className="xl:col-span-2 card p-6 animate-slide-up flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <CreditCard size={18} color="#818cf8" />
+                            <h3 className="text-sm font-bold text-white">Latest Payments</h3>
                         </div>
-                    ))
-                ) : (
-                    statCards.map((c, i) => (
-                        <StatCard key={c.title} {...c} delay={i * 80} />
-                    ))
-                )}
+                        <a href="/payment-history" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
+                            View All
+                        </a>
+                    </div>
+
+                    <div className="flex-1 flex flex-col gap-3 justify-center">
+                        {loadingPayments ? (
+                            [0, 1, 2, 3, 4].map(i => (
+                                <div key={i} className="flex items-center justify-between py-2 border-b border-[rgba(255,255,255,0.04)] last:border-0">
+                                    <div className="flex items-center gap-3">
+                                        <Skeleton className="w-8 h-8 rounded-full" />
+                                        <div className="space-y-1">
+                                            <Skeleton className="h-3 w-20" />
+                                            <Skeleton className="h-2 w-12" />
+                                        </div>
+                                    </div>
+                                    <div className="text-right space-y-1">
+                                        <Skeleton className="h-3 w-14" />
+                                        <Skeleton className="h-2 w-8" />
+                                    </div>
+                                </div>
+                            ))
+                        ) : latestPayments.length === 0 ? (
+                            <div className="text-center py-6 text-xs text-slate-500">
+                                No payments recorded yet.
+                            </div>
+                        ) : (
+                            latestPayments.map(p => {
+                                const sub = p.substockist || {};
+                                const name = sub.firstName ? `${sub.firstName} ${sub.lastName}` : 'Unknown';
+                                const initials = sub.firstName ? `${sub.firstName[0]}${sub.lastName[0]}` : '??';
+                                const isPaid = p.dueAmount === 0;
+                                const dateStr = new Date(p.paymentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+                                return (
+                                    <div key={p._id} className="flex items-center justify-between py-1.5 border-b border-[rgba(255,255,255,0.04)] last:border-0">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold text-white bg-gradient-to-tr from-indigo-500 to-purple-500">
+                                                {initials}
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-semibold text-slate-100">{name}</p>
+                                                <p className="text-[10px] text-slate-500">ID: {sub.substockistId || '—'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xs font-bold text-slate-100">${p.totalAmount.toLocaleString()}</p>
+                                            <div className="flex items-center gap-1.5 justify-end mt-0.5">
+                                                <span className="text-[9px] text-slate-500">{dateStr}</span>
+                                                <span className={`w-1.5 h-1.5 rounded-full ${isPaid ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]' : 'bg-rose-400 shadow-[0_0_6px_#f43f5e]'}`} />
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
             </div>
 
             {/* ── Chart ── */}
@@ -253,17 +346,17 @@ const MainDashboard = () => {
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
                     <div>
                         <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>Analytics</p>
-                        <h3 className="text-lg font-bold" style={{ color: '#0f172a' }}>Revenue Chart</h3>
+                        <h3 className="text-lg font-bold" style={{ color: '#f8fafc' }}>Revenue Chart</h3>
                     </div>
-                    <div className="inline-flex gap-1 p-1 rounded-xl" style={{ background: '#f1f5f9' }}>
+                    <div className="inline-flex gap-1 p-1 rounded-xl" style={{ background: '#0f172a' }}>
                         {['Weekly','Monthly','Yearly'].map(p => (
                             <button
                                 key={p}
                                 onClick={() => setChartPeriod(p)}
-                                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200"
+                                className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer"
                                 style={chartPeriod === p
-                                    ? { background: '#fff', color: '#4f46e5', boxShadow: '0 2px 8px rgba(79,70,229,0.15)' }
-                                    : { background: 'transparent', color: '#64748b' }
+                                    ? { background: '#1e293b', color: '#818cf8', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)' }
+                                    : { background: 'transparent', color: '#94a3b8' }
                                 }
                             >
                                 {p}
@@ -293,8 +386,8 @@ const MainDashboard = () => {
             {/* ── Yearly Overview ── */}
             <div>
                 <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp size={18} color="#4f46e5" />
-                    <h3 className="text-lg font-bold" style={{ color: '#0f172a' }}>Yearly Overview</h3>
+                    <TrendingUp size={18} color="#6366f1" />
+                    <h3 className="text-lg font-bold" style={{ color: '#f8fafc' }}>Yearly Overview</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {[

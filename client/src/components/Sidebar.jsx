@@ -42,8 +42,15 @@ const Sidebar = () => {
             {!isSidebarOpen && (
                 <button
                     onClick={toggleSidebar}
-                    className="hidden lg:flex fixed top-5 left-5 z-50 p-2.5 rounded-xl shadow-lg transition-all items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff' }}
+                    className="hidden lg:flex fixed top-5 left-5 z-50 p-2.5 rounded-xl shadow-lg transition-all items-center justify-center cursor-pointer"
+                    style={{ 
+                        background: '#1e293b', 
+                        border: '1px solid rgba(255,255,255,0.08)', 
+                        color: '#f1f5f9', 
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.25)' 
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#818cf8'; e.currentTarget.style.background = '#273549'; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = '#1e293b'; }}
                     aria-label="Open Sidebar"
                 >
                     <Menu size={18} />
@@ -74,8 +81,8 @@ const Sidebar = () => {
                 className={`
                     fixed top-0 left-0 h-screen w-72 flex flex-col z-50
                     transition-transform duration-300 ease-in-out
-                    ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-                    ${!isSidebarOpen ? 'lg:-translate-x-full' : 'lg:translate-x-0'}
+                    ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+                    ${isSidebarOpen ? 'lg:translate-x-0' : 'lg:-translate-x-full'}
                 `}
                 style={{ background: '#0f172a', borderRight: '1px solid rgba(255,255,255,0.05)' }}
             >
@@ -91,10 +98,10 @@ const Sidebar = () => {
                     </div>
                     <button
                         onClick={toggleSidebar}
-                        className="hidden lg:flex p-1.5 rounded-lg transition-colors"
-                        style={{ color: '#475569' }}
-                        onMouseEnter={e => e.currentTarget.style.color='#94a3b8'}
-                        onMouseLeave={e => e.currentTarget.style.color='#475569'}
+                        className="hidden lg:flex p-1.5 rounded-lg transition-colors cursor-pointer"
+                        style={{ color: '#64748b' }}
+                        onMouseEnter={e => e.currentTarget.style.color='#f1f5f9'}
+                        onMouseLeave={e => e.currentTarget.style.color='#64748b'}
                         aria-label="Collapse Sidebar"
                     >
                         <ChevronLeft size={18} />

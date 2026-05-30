@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, RefreshCw, Trash2, Eye, Users } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../services/api';
 
 /* ── Skeleton rows ── */
@@ -19,13 +20,13 @@ const EmptyState = ({ search }) => (
     <tr>
         <td colSpan={6}>
             <div className="py-16 flex flex-col items-center gap-3 text-center">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#f1f5f9' }}>
-                    <Users size={26} color="#94a3b8" />
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#0f172a' }}>
+                    <Users size={26} color="#64748b" />
                 </div>
-                <p className="text-sm font-semibold" style={{ color: '#475569' }}>
+                <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>
                     {search ? `No results for "${search}"` : 'No substockists yet'}
                 </p>
-                <p className="text-xs" style={{ color: '#94a3b8' }}>
+                <p className="text-xs" style={{ color: '#64748b' }}>
                     {search ? 'Try a different search term.' : 'Add your first substockist to get started.'}
                 </p>
             </div>
@@ -37,17 +38,15 @@ const ViewSubStockist = () => {
     const [substockists, setSubstockists] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
     const [deletingId, setDeletingId] = useState(null);
 
     const fetchSubstockists = async (search = '') => {
         setLoading(true);
-        setError('');
         try {
             const res = await api.get('/api/substockist', { params: { search, t: Date.now() } });
             setSubstockists(res.data.data || []);
         } catch (err) {
-            setError(err.response?.data?.message || 'Unable to load substockists');
+            toast.error(err.response?.data?.message || 'Unable to load substockists');
         } finally {
             setLoading(false);
         }
@@ -61,16 +60,33 @@ const ViewSubStockist = () => {
     }, [searchTerm]);
 
     const handleDelete = async id => {
-        if (!window.confirm('Delete this substockist and all related payments?')) return;
-        setDeletingId(id);
-        try {
-            await api.delete(`/api/substockist/${id}`);
-            fetchSubstockists(searchTerm);
-        } catch (err) {
-            setError(err.response?.data?.message || 'Unable to delete substockist');
-        } finally {
-            setDeletingId(null);
-        }
+        toast.warn(
+            ({ closeToast }) => (
+                <div>
+                    <p className="text-sm font-semibold mb-2">Delete this substockist and all related payments?</p>
+                    <div className="flex gap-2">
+                        <button
+                            className="px-3 py-1 rounded text-xs font-semibold bg-rose-500 text-white"
+                            onClick={async () => {
+                                closeToast();
+                                setDeletingId(id);
+                                try {
+                                    await api.delete(`/api/substockist/${id}`);
+                                    toast.success('Substockist deleted successfully');
+                                    fetchSubstockists(searchTerm);
+                                } catch (err) {
+                                    toast.error(err.response?.data?.message || 'Unable to delete substockist');
+                                } finally {
+                                    setDeletingId(null);
+                                }
+                            }}
+                        >Delete</button>
+                        <button className="px-3 py-1 rounded text-xs font-semibold bg-slate-600 text-white" onClick={closeToast}>Cancel</button>
+                    </div>
+                </div>
+            ),
+            { autoClose: false, closeOnClick: false }
+        );
     };
 
     return (
@@ -98,9 +114,9 @@ const ViewSubStockist = () => {
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl outline-none transition-all duration-200"
-                            style={{ border: '1.5px solid #e2e8f0', background: '#f8fafc', color: '#1e293b' }}
-                            onFocus={e => { e.target.style.borderColor='#4f46e5'; e.target.style.boxShadow='0 0 0 3px rgba(79,70,229,0.1)'; e.target.style.background='#fff'; }}
-                            onBlur={e => { e.target.style.borderColor='#e2e8f0'; e.target.style.boxShadow='none'; e.target.style.background='#f8fafc'; }}
+                            style={{ border: '1.5px solid rgba(255,255,255,0.1)', background: '#0f172a', color: '#f1f5f9' }}
+                            onFocus={e => { e.target.style.borderColor='#818cf8'; e.target.style.boxShadow='0 0 0 3px rgba(99,102,241,0.2)'; e.target.style.background='#0f172a'; }}
+                            onBlur={e => { e.target.style.borderColor='rgba(255,255,255,0.1)'; e.target.style.boxShadow='none'; e.target.style.background='#0f172a'; }}
                         />
                     </div>
 
@@ -122,12 +138,6 @@ const ViewSubStockist = () => {
                         <span className="badge badge-neutral">
                             {substockists.length} {substockists.length === 1 ? 'partner' : 'partners'} found
                         </span>
-                    </div>
-                )}
-
-                {error && (
-                    <div className="py-4 px-4 rounded-xl mb-4 text-sm font-medium animate-fade-in" style={{ background: '#ffe4e6', color: '#9f1239' }}>
-                        {error}
                     </div>
                 )}
 
@@ -166,19 +176,21 @@ const ViewSubStockist = () => {
                                                 >
                                                     {item.firstName?.[0]}{item.lastName?.[0]}
                                                 </div>
-                                                <span className="font-semibold text-sm" style={{ color: '#0f172a' }}>
+                                                <span className="font-semibold text-sm" style={{ color: '#f1f5f9' }}>
                                                     {item.firstName} {item.middleName ? item.middleName + ' ' : ''}{item.lastName}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td style={{ color: '#475569' }}>{item.phone}</td>
+                                        <td style={{ color: '#cbd5e1' }}>{item.phone}</td>
                                         <td style={{ color: '#94a3b8' }}>{item.email || '—'}</td>
                                         <td>
                                             <div className="flex items-center gap-2">
                                                 <Link
                                                     to={`/view-substockist/${item._id}`}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
-                                                    style={{ background: '#ede9fe', color: '#5b21b6' }}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
+                                                    style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc' }}
+                                                    onMouseEnter={e => { e.currentTarget.style.background='rgba(99,102,241,0.22)'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.background='rgba(99,102,241,0.12)'; }}
                                                 >
                                                     <Eye size={13} /> View
                                                 </Link>
@@ -186,8 +198,10 @@ const ViewSubStockist = () => {
                                                     type="button"
                                                     onClick={() => handleDelete(item._id)}
                                                     disabled={deletingId === item._id}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200"
-                                                    style={{ background: '#ffe4e6', color: '#9f1239', cursor: deletingId === item._id ? 'not-allowed' : 'pointer', opacity: deletingId === item._id ? 0.6 : 1 }}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
+                                                    style={{ background: 'rgba(244,63,94,0.12)', color: '#fda4af', cursor: deletingId === item._id ? 'not-allowed' : 'pointer', opacity: deletingId === item._id ? 0.6 : 1 }}
+                                                    onMouseEnter={e => { if (deletingId !== item._id) e.currentTarget.style.background='rgba(244,63,94,0.22)'; }}
+                                                    onMouseLeave={e => { if (deletingId !== item._id) e.currentTarget.style.background='rgba(244,63,94,0.12)'; }}
                                                 >
                                                     <Trash2 size={13} />
                                                     {deletingId === item._id ? '…' : 'Delete'}

@@ -92,9 +92,9 @@ const PaymentHistory = () => {
       {!loading && payments.length > 0 && (
         <div className="grid grid-cols-3 gap-4 mb-6 animate-slide-up">
           {[
-            { label:'Page Total',  value: totalAmt, icon:<DollarSign size={16} />,    gradient:'linear-gradient(135deg,#4338ca,#4f46e5)', text:'#4338ca', bg:'#eef2ff' },
-            { label:'Page Paid',   value: paidAmt,  icon:<CheckCircle2 size={16} />,  gradient:'linear-gradient(135deg,#059669,#10b981)', text:'#065f46', bg:'#f0fdf4' },
-            { label:'Page Due',    value: dueAmt,   icon:<Clock size={16} />,          gradient:'linear-gradient(135deg,#e11d48,#f43f5e)', text:'#be123c', bg:'#fff1f2' },
+            { label:'Page Total',  value: totalAmt, icon:<DollarSign size={16} />,    gradient:'linear-gradient(135deg,#4338ca,#4f46e5)', text:'#818cf8', bg:'rgba(99,102,241,0.12)' },
+            { label:'Page Paid',   value: paidAmt,  icon:<CheckCircle2 size={16} />,  gradient:'linear-gradient(135deg,#059669,#10b981)', text:'#34d399', bg:'rgba(16,185,129,0.12)' },
+            { label:'Page Due',    value: dueAmt,   icon:<Clock size={16} />,          gradient:'linear-gradient(135deg,#e11d48,#f43f5e)', text:'#fda4af', bg:'rgba(244,63,94,0.12)' },
           ].map(c => (
             <div key={c.label} className="card p-4 flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white" style={{ background: c.gradient }}>
@@ -122,23 +122,23 @@ const PaymentHistory = () => {
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="Search by name, ID or date…"
               className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl outline-none transition-all duration-200"
-              style={{ border: '1.5px solid #e2e8f0', background: '#f8fafc', color: '#1e293b' }}
-              onFocus={e => { e.target.style.borderColor='#4f46e5'; e.target.style.boxShadow='0 0 0 3px rgba(79,70,229,0.1)'; e.target.style.background='#fff'; }}
-              onBlur={e => { e.target.style.borderColor='#e2e8f0'; e.target.style.boxShadow='none'; e.target.style.background='#f8fafc'; }}
+              style={{ border: '1.5px solid rgba(255,255,255,0.1)', background: '#0f172a', color: '#f1f5f9' }}
+              onFocus={e => { e.target.style.borderColor='#818cf8'; e.target.style.boxShadow='0 0 0 3px rgba(99,102,241,0.2)'; e.target.style.background='#0f172a'; }}
+              onBlur={e => { e.target.style.borderColor='rgba(255,255,255,0.1)'; e.target.style.boxShadow='none'; e.target.style.background='#0f172a'; }}
             />
           </div>
 
           {/* Status filter */}
-          <div className="inline-flex gap-1 p-1 rounded-xl" style={{ background: '#f1f5f9' }}>
+          <div className="inline-flex gap-1 p-1 rounded-xl" style={{ background: '#0f172a' }}>
             {STATUS_OPTIONS.map(opt => (
               <button
                 key={opt.value}
                 id={`status-${opt.value}`}
                 onClick={() => setStatus(opt.value)}
-                className="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200"
+                className="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
                 style={status === opt.value
-                  ? { background: '#fff', color: '#4f46e5', boxShadow: '0 2px 8px rgba(79,70,229,0.15)' }
-                  : { background: 'transparent', color: '#64748b' }
+                  ? { background: '#1e293b', color: '#818cf8', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)' }
+                  : { background: 'transparent', color: '#94a3b8' }
                 }
               >
                 {opt.label}
@@ -155,11 +155,12 @@ const PaymentHistory = () => {
               id="prev-page"
               onClick={() => page > 1 && fetchPayments(page - 1)}
               disabled={page <= 1 || loading}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer"
               style={{
-                background: page <= 1 || loading ? '#f1f5f9' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-                color: page <= 1 || loading ? '#cbd5e1' : '#fff',
-                border: 'none', cursor: page <= 1 || loading ? 'not-allowed' : 'pointer',
+                background: page <= 1 || loading ? '#0f172a' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+                color: page <= 1 || loading ? '#64748b' : '#fff',
+                border: page <= 1 || loading ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                cursor: page <= 1 || loading ? 'not-allowed' : 'pointer',
               }}
             >
               <ChevronLeft size={15} />
@@ -168,11 +169,12 @@ const PaymentHistory = () => {
               id="next-page"
               onClick={() => page < totalPages && fetchPayments(page + 1)}
               disabled={page >= totalPages || loading}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
+              className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer"
               style={{
-                background: page >= totalPages || loading ? '#f1f5f9' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-                color: page >= totalPages || loading ? '#cbd5e1' : '#fff',
-                border: 'none', cursor: page >= totalPages || loading ? 'not-allowed' : 'pointer',
+                background: page >= totalPages || loading ? '#0f172a' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+                color: page >= totalPages || loading ? '#64748b' : '#fff',
+                border: page >= totalPages || loading ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                cursor: page >= totalPages || loading ? 'not-allowed' : 'pointer',
               }}
             >
               <ChevronRight size={15} />
@@ -181,7 +183,7 @@ const PaymentHistory = () => {
         </div>
 
         {error && (
-          <div className="py-3 px-4 rounded-xl mb-4 text-sm animate-fade-in" style={{ background: '#ffe4e6', color: '#9f1239' }}>
+          <div className="py-3 px-4 rounded-xl mb-4 text-sm animate-fade-in" style={{ background: 'rgba(244,63,94,0.15)', color: '#fda4af', border: '1px solid rgba(244,63,94,0.25)' }}>
             {error}
           </div>
         )}
@@ -209,11 +211,11 @@ const PaymentHistory = () => {
                 <tr>
                   <td colSpan={9}>
                     <div className="py-16 flex flex-col items-center gap-3 text-center">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#f1f5f9' }}>
-                        <CreditCard size={26} color="#94a3b8" />
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#0f172a' }}>
+                        <CreditCard size={26} color="#64748b" />
                       </div>
-                      <p className="text-sm font-semibold" style={{ color: '#475569' }}>No payments recorded yet</p>
-                      <p className="text-xs" style={{ color: '#94a3b8' }}>Generated payments will appear here.</p>
+                      <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>No payments recorded yet</p>
+                      <p className="text-xs" style={{ color: '#64748b' }}>Generated payments will appear here.</p>
                     </div>
                   </td>
                 </tr>
@@ -240,14 +242,14 @@ const PaymentHistory = () => {
                           >
                             {sub.firstName?.[0]}{sub.lastName?.[0]}
                           </div>
-                          <span className="font-medium text-sm" style={{ color: '#1e293b' }}>{name}</span>
+                          <span className="font-medium text-sm" style={{ color: '#f1f5f9' }}>{name}</span>
                         </div>
                       </td>
                       <td><span className="text-xs" style={{ color: '#94a3b8' }}>{fmt(payment.fromDate)}</span></td>
                       <td><span className="text-xs" style={{ color: '#94a3b8' }}>{fmt(payment.toDate)}</span></td>
-                      <td><span className="font-semibold text-sm" style={{ color: '#1e293b' }}>${payment.totalAmount.toLocaleString()}</span></td>
-                      <td><span className="font-semibold text-sm" style={{ color: '#065f46' }}>${payment.paidAmount.toLocaleString()}</span></td>
-                      <td><span className="font-semibold text-sm" style={{ color: payment.dueAmount > 0 ? '#be123c' : '#065f46' }}>${payment.dueAmount.toLocaleString()}</span></td>
+                      <td><span className="font-semibold text-sm" style={{ color: '#f1f5f9' }}>${payment.totalAmount.toLocaleString()}</span></td>
+                      <td><span className="font-semibold text-sm" style={{ color: '#34d399' }}>${payment.paidAmount.toLocaleString()}</span></td>
+                      <td><span className="font-semibold text-sm" style={{ color: payment.dueAmount > 0 ? '#fda4af' : '#34d399' }}>${payment.dueAmount.toLocaleString()}</span></td>
                       <td><StatusBadge due={payment.dueAmount} /></td>
                     </tr>
                   )
@@ -259,20 +261,20 @@ const PaymentHistory = () => {
 
         {/* Footer pagination info */}
         {!loading && payments.length > 0 && (
-          <div className="mt-4 flex items-center justify-between pt-4" style={{ borderTop: '1px solid #f1f5f9' }}>
+          <div className="mt-4 flex items-center justify-between pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
             <p className="text-xs" style={{ color: '#94a3b8' }}>
-              Showing <span className="font-semibold" style={{ color: '#475569' }}>{payments.length}</span> of{' '}
-              <span className="font-semibold" style={{ color: '#475569' }}>{totalCount}</span> records
+              Showing <span className="font-semibold" style={{ color: '#cbd5e1' }}>{payments.length}</span> of{' '}
+              <span className="font-semibold" style={{ color: '#cbd5e1' }}>{totalCount}</span> records
             </p>
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(p => (
                 <button
                   key={p}
                   onClick={() => fetchPayments(p)}
-                  className="w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-200"
+                  className="w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
                   style={page === p
                     ? { background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none' }
-                    : { background: '#f1f5f9', color: '#64748b', border: 'none', cursor: 'pointer' }
+                    : { background: '#0f172a', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }
                   }
                 >
                   {p}

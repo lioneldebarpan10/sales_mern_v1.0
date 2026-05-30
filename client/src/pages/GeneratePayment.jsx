@@ -1,40 +1,28 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { User, Hash, Calendar, DollarSign, CreditCard, Wallet, Calculator, CheckCircle, X, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { User, Hash, Calendar, DollarSign, CreditCard, Wallet, Calculator, Zap, X, CheckCircle } from 'lucide-react';
+import { toast } from 'react-toastify';
 import api from '../services/api';
-
-/* ── Toast ── */
-const Toast = ({ toasts, remove }) => (
-    <div className="toast-container">
-        {toasts.map(t => (
-            <div key={t.id} className={`toast toast-${t.type}`}>
-                {t.type === 'success' ? <CheckCircle size={16} /> : <X size={16} />}
-                <span className="flex-1">{t.message}</span>
-                <button onClick={() => remove(t.id)} style={{ background:'none', border:'none', cursor:'pointer', opacity:0.6 }}><X size={14} /></button>
-            </div>
-        ))}
-    </div>
-);
 
 /* ── Field ── */
 const Field = ({ label, optional, icon, children }) => (
     <div>
-        <label className="block text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#64748b' }}>
+        <label className="block text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#94a3b8' }}>
             {label}{' '}
             {optional
-                ? <span className="normal-case font-normal" style={{ color: '#94a3b8' }}>(Auto)</span>
+                ? <span className="normal-case font-normal" style={{ color: '#64748b' }}>(Auto)</span>
                 : <span style={{ color: '#f43f5e' }}>*</span>}
         </label>
         <div className="relative">
-            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" style={{ color: '#94a3b8' }}>{icon}</span>
+            <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none" style={{ color: '#64748b' }}>{icon}</span>
             {children}
         </div>
     </div>
 );
 
 const inputCls = 'w-full pl-10 pr-4 py-3 text-sm rounded-xl transition-all duration-200 outline-none';
-const inputBase = { border: '1.5px solid #e2e8f0', background: '#f8fafc', color: '#1e293b', fontFamily: 'Inter,sans-serif' };
-const focusOn  = e => { e.target.style.borderColor='#4f46e5'; e.target.style.background='#fff'; e.target.style.boxShadow='0 0 0 3px rgba(79,70,229,0.1)'; };
-const focusOff = e => { e.target.style.borderColor='#e2e8f0'; e.target.style.background='#f8fafc'; e.target.style.boxShadow='none'; };
+const inputBase = { border: '1.5px solid rgba(255,255,255,0.1)', background: '#0f172a', color: '#f1f5f9', fontFamily: 'Inter,sans-serif' };
+const focusOn  = e => { e.target.style.borderColor='#818cf8'; e.target.style.background='#0f172a'; e.target.style.boxShadow='0 0 0 3px rgba(99,102,241,0.2)'; };
+const focusOff = e => { e.target.style.borderColor='rgba(255,255,255,0.1)'; e.target.style.background='#0f172a'; e.target.style.boxShadow='none'; };
 
 const GeneratePayment = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -46,14 +34,6 @@ const GeneratePayment = () => {
     const [loading, setLoading] = useState(false);
     const [idLookupError, setIdLookupError] = useState('');
     const [idFound, setIdFound] = useState(false);
-    const [toasts, setToasts] = useState([]);
-
-    const addToast = useCallback((message, type = 'success') => {
-        const id = Date.now();
-        setToasts(prev => [...prev, { id, message, type }]);
-        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 4000);
-    }, []);
-    const removeToast = useCallback(id => setToasts(prev => prev.filter(t => t.id !== id)), []);
 
     // Auto-calc due
     useEffect(() => {
@@ -91,10 +71,10 @@ const GeneratePayment = () => {
 
     const handleSubmit = async e => {
         e.preventDefault();
-        if (idLookupError) { addToast(idLookupError, 'error'); return; }
-        if (parseFloat(formData.totalPayment) <= 0) { addToast('Total payment must be greater than 0', 'error'); return; }
-        if (!formData.stockistName.trim()) { addToast('Substockist name is required', 'error'); return; }
-        if (new Date(formData.fromDate) > new Date(formData.toDate)) { addToast('From date cannot be after To date', 'error'); return; }
+        if (idLookupError) { toast.error(idLookupError); return; }
+        if (parseFloat(formData.totalPayment) <= 0) { toast.error('Total payment must be greater than 0'); return; }
+        if (!formData.stockistName.trim()) { toast.error('Substockist name is required'); return; }
+        if (new Date(formData.fromDate) > new Date(formData.toDate)) { toast.error('From date cannot be after To date'); return; }
 
         setLoading(true);
         try {
@@ -106,11 +86,11 @@ const GeneratePayment = () => {
                 totalAmount:   parseFloat(formData.totalPayment),
                 paidAmount:    parseFloat(formData.paidPayment),
             });
-            addToast('Payment generated successfully!', 'success');
+            toast.success('Payment generated successfully!');
             setFormData(prev => ({ ...prev, stockistName:'', stockistId:'', totalPayment:'', paidPayment:'', duePayment:0 }));
             setIdFound(false);
         } catch (err) {
-            addToast(err.response?.data?.message || 'Failed to generate payment', 'error');
+            toast.error(err.response?.data?.message || 'Failed to generate payment');
         } finally {
             setLoading(false);
         }
@@ -123,7 +103,6 @@ const GeneratePayment = () => {
 
     return (
         <div className="animate-fade-in">
-            <Toast toasts={toasts} remove={removeToast} />
 
             {/* Header */}
             <div className="page-header mb-8">
@@ -149,7 +128,7 @@ const GeneratePayment = () => {
                                     value={formData.stockistName} onChange={handleChange}
                                     required placeholder="Auto-filled from ID"
                                     className={inputCls}
-                                    style={{ ...inputBase, background: idFound ? '#f0fdf4' : '#f8fafc', borderColor: idFound ? '#6ee7b7' : '#e2e8f0' }}
+                                    style={{ ...inputBase, background: idFound ? 'rgba(16,185,129,0.1)' : '#0f172a', borderColor: idFound ? '#10b981' : 'rgba(255,255,255,0.1)' }}
                                     onFocus={focusOn} onBlur={focusOff}
                                 />
                                 {idLookupError && (
@@ -158,7 +137,7 @@ const GeneratePayment = () => {
                                     </p>
                                 )}
                                 {idFound && (
-                                    <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#059669' }}>
+                                    <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#34d399' }}>
                                         <CheckCircle size={11} />Partner found
                                     </p>
                                 )}
@@ -200,12 +179,12 @@ const GeneratePayment = () => {
                                 <input
                                     type="number" name="duePayment" value={formData.duePayment} readOnly
                                     className={inputCls}
-                                    style={{ ...inputBase, background: due > 0 ? '#fff1f2' : '#f0fdf4', borderColor: due > 0 ? '#fda4af' : '#6ee7b7', color: due > 0 ? '#be123c' : '#065f46', fontWeight: 700 }}
+                                    style={{ ...inputBase, background: due > 0 ? 'rgba(244,63,94,0.1)' : 'rgba(16,185,129,0.1)', borderColor: due > 0 ? 'rgba(244,63,94,0.3)' : 'rgba(16,185,129,0.3)', color: due > 0 ? '#fda4af' : '#34d399', fontWeight: 700 }}
                                 />
                             </Field>
                         </div>
 
-                        <div className="flex justify-end pt-4" style={{ borderTop: '1px solid #f1f5f9' }}>
+                        <div className="flex justify-end pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                             <button
                                 type="submit" id="generate-payment-submit"
                                 disabled={loading}
@@ -231,15 +210,15 @@ const GeneratePayment = () => {
                 {/* Live summary card */}
                 <div className="card p-6 animate-slide-up h-fit" style={{ animationDelay: '80ms' }}>
                     <div className="flex items-center gap-2 mb-5">
-                        <Zap size={16} color="#4f46e5" />
-                        <h3 className="text-sm font-bold" style={{ color: '#0f172a' }}>Live Summary</h3>
+                        <Zap size={16} color="#6366f1" />
+                        <h3 className="text-sm font-bold" style={{ color: '#f8fafc' }}>Live Summary</h3>
                     </div>
 
                     <div className="space-y-4">
                         {[
-                            { label: 'Total', value: total, style: { color: '#1d4ed8' }, bg: '#eff6ff' },
-                            { label: 'Paid',  value: paid,  style: { color: '#065f46' }, bg: '#f0fdf4' },
-                            { label: 'Due',   value: due,   style: { color: '#be123c' }, bg: '#fff1f2' },
+                            { label: 'Total', value: total, style: { color: '#818cf8' }, bg: 'rgba(99,102,241,0.12)' },
+                            { label: 'Paid',  value: paid,  style: { color: '#34d399' }, bg: 'rgba(16,185,129,0.12)' },
+                            { label: 'Due',   value: due,   style: { color: '#fda4af' }, bg: 'rgba(244,63,94,0.12)' },
                         ].map(({ label, value, style, bg }) => (
                             <div key={label} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ background: bg }}>
                                 <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</span>
@@ -251,11 +230,11 @@ const GeneratePayment = () => {
                     {/* Progress bar */}
                     {total > 0 && (
                         <div className="mt-5">
-                            <div className="flex justify-between text-xs font-semibold mb-2" style={{ color: '#64748b' }}>
+                            <div className="flex justify-between text-xs font-semibold mb-2" style={{ color: '#94a3b8' }}>
                                 <span>Payment Progress</span>
                                 <span>{paidPct.toFixed(0)}%</span>
                             </div>
-                            <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: '#f1f5f9' }}>
+                            <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: '#0f172a' }}>
                                 <div
                                     className="h-full rounded-full transition-all duration-500"
                                     style={{ width: `${paidPct}%`, background: 'linear-gradient(90deg,#4f46e5,#10b981)' }}
