@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, MapPin, Phone, Mail, Calendar, Hash, Users, ArrowRight } from 'lucide-react';
+import api from '../services/api';
 
 const AddSubStockist = () => {
     const navigate = useNavigate();
@@ -14,15 +15,36 @@ const AddSubStockist = () => {
         email: '',
         creationDate: new Date().toISOString().split('T')[0]
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Form Submitted:', formData);
-        alert('Substockist added successfully!');
+        setError('');
+        setLoading(true);
+
+        try {
+            await api.post('/api/substockist', {
+                substockistId: formData.stockistId,
+                firstName: formData.firstName,
+                middleName: formData.middleName,
+                lastName: formData.lastName,
+                phone: formData.phone,
+                email: formData.email,
+                address: formData.address
+            });
+
+            alert('Substockist added successfully!');
+            navigate('/view-substockist');
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to create substockist');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -30,6 +52,7 @@ const AddSubStockist = () => {
             <h2 className="text-3xl font-bold text-gray-700 dark:text-gray-700 mb-8">Add New Sub-Stockist</h2>
 
             <div className="bg-white p-8 rounded-3xl shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
+                {error && <div className="mb-4 text-sm text-red-600">{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
@@ -203,10 +226,11 @@ const AddSubStockist = () => {
                     <div className="flex justify-end">
                         <button
                             type="submit"
-                            className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 px-8 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
+                            disabled={loading}
+                            className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-3 px-8 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2"
                         >
                             <User size={18} />
-                            Add Substockist
+                            {loading ? 'Saving...' : 'Add Substockist'}
                         </button>
                     </div>
                 </form>

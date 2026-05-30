@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, DollarSign, CreditCard, Wallet, CheckCircle, Clock, CheckCircle2 } from 'lucide-react';
 import Chart from 'react-apexcharts';
+import api from '../services/api';
 
 const DashboardCard = ({ title, value, icon, subtitle, color, className = "" }) => {
     return (
@@ -21,6 +22,20 @@ const DashboardCard = ({ title, value, icon, subtitle, color, className = "" }) 
 
 const MainDashboard = () => {
     const [chartPeriod, setChartPeriod] = useState("Weekly");
+    const [summary, setSummary] = useState({ total: 0, paid: 0, due: 0 });
+
+    useEffect(() => {
+        const fetchSummary = async () => {
+            try {
+                const response = await api.get('/api/analytics/summary');
+                setSummary(response.data.data || { total: 0, paid: 0, due: 0 });
+            } catch (error) {
+                console.error('Failed to load dashboard summary', error);
+            }
+        };
+
+        fetchSummary();
+    }, []);
 
     // Mock Data for Charts
     const chartData = {
@@ -127,18 +142,9 @@ const MainDashboard = () => {
     };
 
     const paymentMetrics = [
-        // Daily
-        { title: "Daily Total Payment", value: "$1,200", icon: <DollarSign size={24} />, color: "bg-blue-500" },
-        { title: "Daily Paid Payment", value: "$800", icon: <CheckCircle2 size={24} />, color: "bg-indigo-500" },
-        { title: "Daily Due Payment", value: "$400", icon: <Clock size={24} />, color: "bg-purple-500" },
-        // Weekly
-        { title: "Weekly Total Payment", value: "$8,400", icon: <DollarSign size={24} />, color: "bg-blue-600" },
-        { title: "Weekly Paid Payment", value: "$6,000", icon: <CheckCircle2 size={24} />, color: "bg-indigo-600" },
-        { title: "Weekly Due Payment", value: "$2,400", icon: <Clock size={24} />, color: "bg-purple-600" },
-        // Monthly
-        { title: "Monthly Total Payment", value: "$36,000", icon: <DollarSign size={24} />, color: "bg-blue-700" },
-        { title: "Monthly Paid Payment", value: "$25,000", icon: <CheckCircle2 size={24} />, color: "bg-indigo-700" },
-        { title: "Monthly Due Payment", value: "$11,000", icon: <Clock size={24} />, color: "bg-purple-700" },
+        { title: "Total Payment", value: `$${summary.total.toLocaleString()}`, icon: <DollarSign size={24} />, color: "bg-blue-500" },
+        { title: "Paid Payment", value: `$${summary.paid.toLocaleString()}`, icon: <CheckCircle2 size={24} />, color: "bg-indigo-500" },
+        { title: "Due Payment", value: `$${summary.due.toLocaleString()}`, icon: <Clock size={24} />, color: "bg-purple-500" },
     ];
 
     return (
@@ -214,19 +220,19 @@ const MainDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <DashboardCard
                         title="Yearly Total Payment"
-                        value="$450,000"
+                        value={`$${summary.total.toLocaleString()}`}
                         icon={<DollarSign size={24} />}
                         color="bg-blue-800"
                     />
                     <DashboardCard
                         title="Yearly Paid Payment"
-                        value="$380,000"
+                        value={`$${summary.paid.toLocaleString()}`}
                         icon={<CheckCircle2 size={24} />}
                         color="bg-indigo-800"
                     />
                     <DashboardCard
                         title="Yearly Due Payment"
-                        value="$70,000"
+                        value={`$${summary.due.toLocaleString()}`}
                         icon={<Clock size={24} />}
                         color="bg-purple-800"
                     />

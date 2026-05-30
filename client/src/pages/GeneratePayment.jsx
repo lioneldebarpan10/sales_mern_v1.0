@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Hash, Calendar, DollarSign, CreditCard, Wallet, Calculator } from 'lucide-react';
+import api from '../services/api';
 
 const GeneratePayment = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -12,6 +13,8 @@ const GeneratePayment = () => {
         paidPayment: '',
         duePayment: 0
     });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState('');
 
     // Auto-calculate Due Payment whenever Total or Paid changes
     useEffect(() => {
@@ -32,16 +35,39 @@ const GeneratePayment = () => {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
 
         if (parseFloat(formData.totalPayment) <= 0) {
-            alert("Total payment must be greater than 0");
+            setError('Total payment must be greater than 0');
             return;
         }
 
-        console.log('Payment Generated:', formData);
-        alert('Payment generated successfully!');
+        setLoading(true);
+        try {
+            await api.post('/api/payment', {
+                substockistId: formData.stockistId,
+                fromDate: formData.paymentDate,
+                toDate: formData.paymentDate,
+                totalAmount: parseFloat(formData.totalPayment),
+                paidAmount: parseFloat(formData.paidPayment)
+            });
+
+            alert('Payment generated successfully!');
+            setFormData(prev => ({
+                ...prev,
+                stockistName: '',
+                stockistId: '',
+                totalPayment: '',
+                paidPayment: '',
+                duePayment: 0
+            }));
+        } catch (err) {
+            setError(err.response?.data?.message || 'Failed to generate payment');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -49,6 +75,7 @@ const GeneratePayment = () => {
             <h2 className="text-3xl font-bold text-gray-700 dark:text-gray-700 mb-8">Generate Payment</h2>
 
             <div className="bg-white p-8 rounded-3xl shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
+                {error && <div className="mb-4 text-sm text-red-600">{error}</div>}
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
 
@@ -183,10 +210,11 @@ const GeneratePayment = () => {
                     <div className="flex justify-end">
                         <button
                             type="submit"
-                            className="bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-3 px-8 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2 cursor-pointer"
+                            disabled={loading}
+                            className="bg-indigo-500 hover:bg-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-medium py-3 px-8 rounded-xl transition-all shadow-lg shadow-indigo-500/20 flex items-center gap-2 cursor-pointer"
                         >
                             <Wallet size={18} />
-                            Generate Payment
+                            {loading ? 'Generating...' : 'Generate Payment'}
                         </button>
                     </div>
                 </form>

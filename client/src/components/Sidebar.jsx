@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, UserPlus, Users, CreditCard, Home, Mail, Menu, X } from 'lucide-react';
+import { LayoutDashboard, UserPlus, Users, CreditCard, Mail, Menu, X, LogOut } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
     const [activeRoute, setActiveRoute] = React.useState("Dashboard");
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+    const { logout } = useAuth();
 
     // Sync active route with location on load/change
     React.useEffect(() => {
@@ -111,12 +113,19 @@ const Sidebar = () => {
                 </div>
 
                 {/* Generate Report Button */}
-                <div className="mx-auto mb-6 mt-auto">
+                <div className="mx-auto mb-4 mt-auto space-y-3">
                     <button
-                        className="flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white py-3 px-10 rounded-2xl transition-all shadow-lg shadow-indigo-500/20"
+                        className="flex items-center justify-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white py-3 px-10 rounded-2xl transition-all shadow-lg shadow-indigo-500/20 w-full"
                     >
                         <Mail size={20} />
                         <span className="font-medium text-sm cursor-pointer">Generate Report</span>
+                    </button>
+                    <button
+                        onClick={logout}
+                        className="flex items-center justify-center gap-2 bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 py-3 px-10 rounded-2xl transition-all shadow-sm w-full"
+                    >
+                        <LogOut size={20} />
+                        <span className="font-medium text-sm">Logout</span>
                     </button>
                 </div>
             </div>

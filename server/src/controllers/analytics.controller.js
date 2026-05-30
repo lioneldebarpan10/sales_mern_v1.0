@@ -77,9 +77,9 @@ async function getYearlyAnalytics(req, res) {
       const result = await paymentModel.aggregate([
          {
             $group: {
-               _id: { $year: "paymentDate" },
-               total: { $sum: "totalAmount" },
-               paid: { $sum: "paidAmount" },
+               _id: { $year: "$paymentDate" },
+               total: { $sum: "$totalAmount" },
+               paid: { $sum: "$paidAmount" },
                due: { $sum: "$dueAmount" }
             }
          },
@@ -89,7 +89,7 @@ async function getYearlyAnalytics(req, res) {
    }
    catch (error) {
       console.log("Yearly Analytics Error:", error.message);
-      res.status(500).json({message: "Internal Server Error"});s
+      res.status(500).json({ message: "Internal Server Error" });
    }
 }
 
