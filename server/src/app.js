@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const authRoutes = require("./routes/auth.routes");
 const subStockistRoutes = require("./routes/substockist.routes")
 const paymentRoutes = require("./routes/payment.routes");
+const analyticsRoutes = require("./routes/analytics.routes");
 
 const app = express();
 
@@ -24,6 +25,11 @@ app.use("/api/substockist" , subStockistRoutes)
 
 // payment route added
 app.use("/api/payment", paymentRoutes);
+
+// Analystics route added
+app.use("/api/analytics" , analyticsRoutes);
+
+
 
 // test route
 app.get("/", (req, res) => {
