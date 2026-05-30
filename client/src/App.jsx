@@ -5,8 +5,8 @@ import AddSubStockist from './pages/AddSubStockist'
 import ViewSubStockist from './pages/ViewSubStockist'
 import SubstockistProfile from './pages/SubstockistProfile'
 import GeneratePayment from './pages/GeneratePayment'
+import PaymentHistory from './pages/PaymentHistory'
 import Login from './pages/Login'
-import Footer from './components/Footer'
 import { useAuth } from './context/AuthContext'
 
 function RequireAuth({ children }) {
@@ -37,7 +37,7 @@ function App() {
   return (
     <div className="flex bg-gray-50 min-h-screen">
       {auth && <Sidebar />}
-      <div className={`flex-1 p-8 ${auth ? 'bg-blue-50' : 'bg-slate-100'}`}>
+      <div className={`flex-1 p-4 sm:p-6 lg:p-8 ${auth ? 'bg-blue-50 lg:pl-72' : 'bg-slate-100'}`}>
         <Routes>
           <Route path="/login" element={auth ? <Navigate to="/" replace /> : <Login />} />
           <Route path="/" element={<RequireAuth><MainDashboard /></RequireAuth>} />
@@ -45,9 +45,9 @@ function App() {
           <Route path="/view-substockist" element={<RequireAuth><ViewSubStockist /></RequireAuth>} />
           <Route path="/view-substockist/:id" element={<RequireAuth><SubstockistProfile /></RequireAuth>} />
           <Route path="/generate-payment" element={<RequireAuth><GeneratePayment /></RequireAuth>} />
+          <Route path="/payment-history" element={<RequireAuth><PaymentHistory /></RequireAuth>} />
           <Route path="*" element={<Navigate to={auth ? '/' : '/login'} replace />} />
         </Routes>
-        {auth && <Footer />}
       </div>
     </div>
   )

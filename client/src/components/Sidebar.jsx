@@ -26,6 +26,7 @@ const Sidebar = () => {
         { name: "Add Substockist", icon: <UserPlus size={20} />, id: "add-substockist", path: "/add-substockist" },
         { name: "View Substockist", icon: <Users size={20} />, id: "view-substockist", path: "/view-substockist" },
         { name: "Generate Payment", icon: <CreditCard size={20} />, id: "generate-payment", path: "/generate-payment" },
+        { name: "Payment History", icon: <CreditCard size={20} />, id: "payment-history", path: "/payment-history" },
     ];
 
     const toggleMobileMenu = () => {

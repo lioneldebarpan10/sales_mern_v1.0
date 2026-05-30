@@ -72,4 +72,93 @@ async function createPayment(req, res) {
    }
 }
 
-module.exports = { createPayment }
+async function getPaymentHistory(req, res) {
+   try {
+      const page = Math.max(parseInt(req.query.page, 10) || 1, 1)
+      const limit = Math.max(Math.min(parseInt(req.query.limit, 10) || 10, 50), 1)
+      const skip = (page - 1) * limit
+      const status = String(req.query.status || 'all').trim().toLowerCase()
+      const search = String(req.query.search || '').trim()
+
+      const stages = [
+         {
+            $lookup: {
+               from: 'substockists',
+               localField: 'substockist',
+               foreignField: '_id',
+               as: 'substockist'
+            }
+         },
+         {
+            $unwind: {
+               path: '$substockist',
+               preserveNullAndEmptyArrays: true
+            }
+         },
+         {
+            $addFields: {
+               paymentDateString: {
+                  $dateToString: {
+                     format: '%Y-%m-%d',
+                     date: '$paymentDate'
+                  }
+               }
+            }
+         }
+      ]
+
+      const filters = []
+      if (status === 'paid') {
+         filters.push({ dueAmount: 0 })
+      } else if (status === 'due') {
+         filters.push({ dueAmount: { $gt: 0 } })
+      }
+
+      if (search) {
+         const regex = new RegExp(search, 'i')
+         filters.push({
+            $or: [
+               { 'substockist.substockistId': regex },
+               { 'substockist.firstName': regex },
+               { 'substockist.middleName': regex },
+               { 'substockist.lastName': regex },
+               { paymentDateString: regex }
+            ]
+         })
+      }
+
+      if (filters.length) {
+         stages.push({ $match: filters.length === 1 ? filters[0] : { $and: filters } })
+      }
+
+      const pipeline = [
+         ...stages,
+         { $sort: { paymentDate: -1 } },
+         {
+            $facet: {
+               metadata: [{ $count: 'totalCount' }],
+               data: [{ $skip: skip }, { $limit: limit }]
+            }
+         }
+      ]
+
+      const [result] = await paymentModel.aggregate(pipeline)
+      const totalCount = result?.metadata?.[0]?.totalCount || 0
+      const totalPages = Math.max(Math.ceil(totalCount / limit), 1)
+
+      res.status(200).json({
+         data: result?.data || [],
+         meta: {
+            page,
+            limit,
+            totalCount,
+            totalPages
+         }
+      })
+   } catch (error) {
+      console.log("Payment History Error:", error.message)
+      res.status(500).json({ message: "Internal Server Error" })
+   }
+}
+
+module.exports = { createPayment, getPaymentHistory }
