@@ -37,6 +37,22 @@ const ViewSubStockist = () => {
     return () => clearTimeout(debounce);
   }, [searchTerm]);
 
+  const handleDelete = async (id) => {
+    const confirmed = window.confirm("Delete this substockist and all related payments?");
+    if (!confirmed) return;
+
+    setLoading(true);
+    setError('');
+    try {
+      await api.delete(`/api/substockist/${id}`);
+      fetchSubstockists(searchTerm);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Unable to delete substockist');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-2">
       <h2 className="text-3xl font-bold text-gray-700 dark:text-gray-700 mb-8">View All Substockists</h2>
@@ -90,13 +106,20 @@ const ViewSubStockist = () => {
                       <td className="py-4 px-4 text-sm font-bold text-navy-700">{`${item.firstName} ${item.middleName ? item.middleName + ' ' : ''}${item.lastName}`}</td>
                       <td className="py-4 px-4 text-sm font-medium text-gray-600">{item.phone}</td>
                       <td className="py-4 px-4 text-sm font-medium text-gray-600">{item.email || '—'}</td>
-                      <td className="py-4 px-4 text-sm font-medium text-gray-600">
+                      <td className="py-4 px-4 text-sm font-medium text-gray-600 space-x-2">
                         <Link
                           to={`/view-substockist/${item._id}`}
                           className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-indigo-500 text-white text-sm font-medium hover:bg-indigo-600 transition"
                         >
                           View
                         </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(item._id)}
+                          className="inline-flex items-center justify-center px-3 py-1.5 rounded-full bg-rose-500 text-white text-sm font-medium hover:bg-rose-600 transition"
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                   ))

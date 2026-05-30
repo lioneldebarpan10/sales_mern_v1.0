@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Users, CheckCircle2, Clock, DollarSign } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Clock, DollarSign } from 'lucide-react';
 import Chart from 'react-apexcharts';
 import api from '../services/api';
 
@@ -9,12 +9,16 @@ const monthNames = [
   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
 
+const formatDateInput = (date) => date.toISOString().split('T')[0];
+
 const SubstockistProfile = () => {
   const { id } = useParams();
   const [substockist, setSubstockist] = useState(null);
   const [summary, setSummary] = useState({ total: 0, paid: 0, due: 0 });
-  const [weeklyHistory, setWeeklyHistory] = useState([]);
-  const [monthlyHistory, setMonthlyHistory] = useState([]);
+  const [history, setHistory] = useState([]);
+  const [period, setPeriod] = useState('weekly');
+  const [fromDate, setFromDate] = useState(formatDateInput(new Date(new Date().setDate(new Date().getDate() - 30))));
+  const [toDate, setToDate] = useState(formatDateInput(new Date()));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -24,11 +28,17 @@ const SubstockistProfile = () => {
       setError('');
 
       try {
-        const response = await api.get(`/api/substockist/${id}`);
+        const response = await api.get(`/api/substockist/${id}`, {
+          params: {
+            from: fromDate,
+            to: toDate,
+            period
+          }
+        });
+
         setSubstockist(response.data.substockist);
         setSummary(response.data.summary || { total: 0, paid: 0, due: 0 });
-        setWeeklyHistory(response.data.weeklyHistory || []);
-        setMonthlyHistory(response.data.monthlyHistory || []);
+        setHistory(response.data.history || []);
       } catch (err) {
         setError(err.response?.data?.message || 'Unable to load substockist profile');
       } finally {
@@ -36,59 +46,33 @@ const SubstockistProfile = () => {
       }
     };
 
-    fetchProfile();
-  }, [id]);
-
-  const weekCount = 52;
-  const weeklyCategories = Array.from({ length: weekCount }, (_, index) => `Week ${index + 1}`);
-  const weeklyTotals = Array(weekCount).fill(0);
-  const weeklyPaid = Array(weekCount).fill(0);
-  const weeklyDue = Array(weekCount).fill(0);
-
-  weeklyHistory.forEach((item) => {
-    const idx = item._id - 1;
-    if (idx >= 0 && idx < weekCount) {
-      weeklyTotals[idx] = item.total || 0;
-      weeklyPaid[idx] = item.paid || 0;
-      weeklyDue[idx] = item.due || 0;
+    if (id) {
+      fetchProfile();
     }
+  }, [id, period, fromDate, toDate]);
+
+  const chartCategories = history.map((item) => {
+    if (!item._id) return '';
+
+    if (period === 'daily') {
+      return item._id.date || item._id;
+    }
+
+    if (period === 'monthly') {
+      const monthIndex = item._id.month - 1;
+      return `${monthNames[monthIndex] || 'Month'} ${item._id.year}`;
+    }
+
+    return item._id.week ? `W${item._id.week} ${item._id.year}` : item._id;
   });
 
-  const monthCategories = monthNames;
-  const monthlyTotals = Array(12).fill(0);
-  const monthlyPaid = Array(12).fill(0);
-  const monthlyDue = Array(12).fill(0);
-  monthlyHistory.forEach((item) => {
-    const idx = item._id - 1;
-    if (idx >= 0 && idx < 12) {
-      monthlyTotals[idx] = item.total || 0;
-      monthlyPaid[idx] = item.paid || 0;
-      monthlyDue[idx] = item.due || 0;
-    }
-  });
+  const chartSeries = [
+    { name: 'Total', data: history.map((item) => item.total || 0) },
+    { name: 'Paid', data: history.map((item) => item.paid || 0) },
+    { name: 'Due', data: history.map((item) => item.due || 0) }
+  ];
 
-  const lineChartOptions = {
-    chart: {
-      toolbar: { show: false }
-    },
-    colors: ['#2563eb', '#10b981', '#ef4444'],
-    stroke: { curve: 'smooth', width: 3 },
-    markers: { size: 5 },
-    dataLabels: { enabled: false },
-    xaxis: {
-      categories: weeklyCategories,
-      labels: { style: { colors: '#64748b' } }
-    },
-    yaxis: {
-      labels: { formatter: (value) => `$${value}` }
-    },
-    tooltip: {
-      y: { formatter: (value) => `$${value}` }
-    },
-    legend: { position: 'top' }
-  };
-
-  const areaChartOptions = {
+  const chartOptions = {
     chart: {
       toolbar: { show: false }
     },
@@ -97,7 +81,7 @@ const SubstockistProfile = () => {
     markers: { size: 4 },
     dataLabels: { enabled: false },
     xaxis: {
-      categories: monthCategories,
+      categories: chartCategories,
       labels: { style: { colors: '#64748b' } }
     },
     yaxis: {
@@ -187,52 +171,61 @@ const SubstockistProfile = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6">
-            <div className="rounded-3xl bg-white p-6 shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <p className="text-sm text-gray-500 uppercase tracking-[0.2em]">Weekly payment history</p>
-                  <h3 className="text-xl font-semibold text-gray-700">Current year week summary</h3>
+          <div className="rounded-3xl bg-white p-6 shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-6">
+              <div>
+                <p className="text-sm text-gray-500 uppercase tracking-[0.2em]">Date-range analytics</p>
+                <h3 className="text-xl font-semibold text-gray-700">Substockist payment history</h3>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className="text-sm text-gray-500">
+                    From
+                    <input
+                      type="date"
+                      value={fromDate}
+                      onChange={(e) => setFromDate(e.target.value)}
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                    />
+                  </label>
+                  <label className="text-sm text-gray-500">
+                    To
+                    <input
+                      type="date"
+                      value={toDate}
+                      onChange={(e) => setToDate(e.target.value)}
+                      className="mt-1 block w-full rounded-xl border border-gray-200 px-3 py-2 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none"
+                    />
+                  </label>
                 </div>
-                <div className="inline-flex items-center gap-2 text-sm text-gray-500">
-                  <Users size={18} />
-                  Week by week
+                <div className="inline-flex gap-2">
+                  {['daily', 'weekly', 'monthly'].map((option) => (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setPeriod(option)}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${period === option ? 'bg-indigo-500 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                    >
+                      {option.charAt(0).toUpperCase() + option.slice(1)}
+                    </button>
+                  ))}
                 </div>
               </div>
-              <Chart
-                options={lineChartOptions}
-                series={[
-                  { name: 'Total', data: weeklyTotals },
-                  { name: 'Paid', data: weeklyPaid },
-                  { name: 'Due', data: weeklyDue }
-                ]}
-                type="line"
-                height={320}
-              />
             </div>
 
-            <div className="rounded-3xl bg-white p-6 shadow-[0px_3px_14px_rgba(226,225,249,0.98)] border border-gray-200">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <p className="text-sm text-gray-500 uppercase tracking-[0.2em]">Monthly payment history</p>
-                  <h3 className="text-xl font-semibold text-gray-700">Current year monthly overview</h3>
-                </div>
-                <div className="inline-flex items-center gap-2 text-sm text-gray-500">
-                  <DollarSign size={18} />
-                  Month by month
-                </div>
+            <Chart
+              options={chartOptions}
+              series={chartSeries}
+              type="area"
+              height={360}
+            />
+
+            {history.length === 0 && (
+              <div className="mt-6 rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-gray-600">
+                No payments found for the selected date range.
               </div>
-              <Chart
-                options={areaChartOptions}
-                series={[
-                  { name: 'Total', data: monthlyTotals },
-                  { name: 'Paid', data: monthlyPaid },
-                  { name: 'Due', data: monthlyDue }
-                ]}
-                type="area"
-                height={320}
-              />
-            </div>
+            )}
           </div>
         </>
       )}

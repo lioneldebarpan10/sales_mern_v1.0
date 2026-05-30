@@ -78,6 +78,32 @@ async function getAllSubstockists(req, res) {
    }
 }
 
+async function deleteSubstockist(req, res) {
+   try {
+      const { id } = req.params;
+      let substockist = null;
+
+      if (mongoose.Types.ObjectId.isValid(id)) {
+         substockist = await substockistModel.findById(id);
+      }
+      if (!substockist) {
+         substockist = await substockistModel.findOne({ substockistId: id.toUpperCase() });
+      }
+
+      if (!substockist) {
+         return res.status(404).json({ message: "Substockist not found" });
+      }
+
+      await paymentModel.deleteMany({ substockist: substockist._id });
+      await substockist.deleteOne();
+
+      res.status(200).json({ message: "Substockist deleted successfully" });
+   } catch (error) {
+      console.log("Delete Substockist Error:", error.message);
+      res.status(500).json({ message: "Internal Server error" });
+   }
+}
+
 async function getSubstockistById(req, res) {
    try {
       const { id } = req.params;
@@ -98,13 +124,27 @@ async function getSubstockistById(req, res) {
       const yearStart = new Date(now.getFullYear(), 0, 1);
       const yearEnd = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
 
+      const fromDate = req.query.from ? new Date(req.query.from) : yearStart;
+      const toDate = req.query.to ? new Date(req.query.to) : now;
+      const period = req.query.period || "weekly";
+
+      if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+         return res.status(400).json({ message: "Invalid date range" });
+      }
+
+      if (fromDate > toDate) {
+         return res.status(400).json({ message: "from date must be before to date" });
+      }
+
+      toDate.setHours(23, 59, 59, 999);
+
       const summaryResult = await paymentModel.aggregate([
          {
             $match: {
                substockist: substockist._id,
                paymentDate: {
-                  $gte: yearStart,
-                  $lte: yearEnd
+                  $gte: fromDate,
+                  $lte: toDate
                }
             }
          },
@@ -116,71 +156,49 @@ async function getSubstockistById(req, res) {
                due: { $sum: "$dueAmount" }
             }
          }
-      ]);
+      ])
 
-      const weeklyHistory = await paymentModel.aggregate([
+      const groupBy = period === "daily"
+         ? { date: { $dateToString: { format: "%Y-%m-%d", date: "$paymentDate" } } }
+         : period === "monthly"
+            ? { year: { $year: "$paymentDate" }, month: { $month: "$paymentDate" } }
+            : { year: { $isoWeekYear: "$paymentDate" }, week: { $isoWeek: "$paymentDate" } }
+
+      const sortObject = period === "daily"
+         ? { "_id.date": 1 }
+         : period === "monthly"
+            ? { "_id.year": 1, "_id.month": 1 }
+            : { "_id.year": 1, "_id.week": 1 };
+
+      const history = await paymentModel.aggregate([
          {
             $match: {
                substockist: substockist._id,
                paymentDate: {
-                  $gte: yearStart,
-                  $lte: yearEnd
+                  $gte: fromDate,
+                  $lte: toDate
                }
             }
          },
          {
-            $project: {
-               paidAmount: 1,
-               dueAmount: 1,
-               totalAmount: 1,
-               weekOfYear: { $isoWeek: "$paymentDate" }
-            }
-         },
-         {
             $group: {
-               _id: "$weekOfYear",
+               _id: groupBy,
                total: { $sum: "$totalAmount" },
                paid: { $sum: "$paidAmount" },
                due: { $sum: "$dueAmount" }
             }
          },
-         { $sort: { _id: 1 } }
-      ]);
-
-      const monthlyHistory = await paymentModel.aggregate([
          {
-            $match: {
-               substockist: substockist._id,
-               paymentDate: {
-                  $gte: yearStart,
-                  $lte: yearEnd
-               }
-            }
-         },
-         {
-            $project: {
-               paidAmount: 1,
-               dueAmount: 1,
-               totalAmount: 1,
-               month: { $month: "$paymentDate" }
-            }
-         },
-         {
-            $group: {
-               _id: "$month",
-               total: { $sum: "$totalAmount" },
-               paid: { $sum: "$paidAmount" },
-               due: { $sum: "$dueAmount" }
-            }
-         },
-         { $sort: { _id: 1 } }
-      ]);
+            $sort: sortObject
+         }
+      ])
 
       res.status(200).json({
          substockist,
          summary: summaryResult[0] || { total: 0, paid: 0, due: 0 },
-         weeklyHistory,
-         monthlyHistory
+         history,
+         period,
+         dateRange: { from: fromDate, to: toDate }
       });
    } catch (error) {
       console.log("Get Substockist Profile Error:", error.message);
@@ -191,5 +209,6 @@ async function getSubstockistById(req, res) {
 module.exports = {
    createSubstockist,
    getAllSubstockists,
+   deleteSubstockist,
    getSubstockistById
 }
