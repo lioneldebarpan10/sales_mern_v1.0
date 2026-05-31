@@ -193,10 +193,19 @@ async function getSubstockistById(req, res) {
          }
       ])
 
+      const paymentDetails = await paymentModel.find({
+         substockist: substockist._id,
+         paymentDate: {
+            $gte: fromDate,
+            $lte: toDate
+         }
+      }).sort({ paymentDate: -1 });
+
       res.status(200).json({
          substockist,
          summary: summaryResult[0] || { total: 0, paid: 0, due: 0 },
          history,
+         paymentDetails,
          period,
          dateRange: { from: fromDate, to: toDate }
       });

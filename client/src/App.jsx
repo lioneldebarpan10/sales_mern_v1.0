@@ -1,4 +1,5 @@
 import { Route, Routes, Navigate } from 'react-router-dom'
+import Navbar from './components/Navbar'
 import Sidebar from './components/Sidebar'
 import MainDashboard from './pages/MainDashboard'
 import AddSubStockist from './pages/AddSubStockist'
@@ -11,6 +12,7 @@ import { useAuth } from './context/AuthContext'
 import { SidebarProvider, useSidebar } from './context/SidebarContext'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { useEffect, useState } from 'react'
 
 function RequireAuth({ children }) {
   const { auth, loading } = useAuth()
@@ -29,6 +31,23 @@ function RequireAuth({ children }) {
 function AppLayout() {
   const { auth, loading } = useAuth()
   const { isSidebarOpen } = useSidebar()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [theme, setTheme] = useState('dark')
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem('salesify-theme')
+    if (storedTheme === 'light' || storedTheme === 'dark') {
+      setTheme(storedTheme)
+    } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+      setTheme('light')
+    }
+  }, [])
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', theme === 'light')
+    document.documentElement.classList.toggle('dark', theme === 'dark')
+    localStorage.setItem('salesify-theme', theme)
+  }, [theme])
 
   if (loading) {
     return (
@@ -40,15 +59,17 @@ function AppLayout() {
 
   return (
     <>
-      <ToastContainer theme="dark" position="top-right" autoClose={3000} />
-      <div className="flex bg-[#0b0f19] min-h-screen">
-        {auth && <Sidebar />}
+      <ToastContainer theme={theme === 'dark' ? 'dark' : 'light'} position="top-right" autoClose={3000} />
+      {auth && <Navbar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} theme={theme} toggleTheme={() => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'))} />}
+      <div className="flex min-h-screen pt-16" style={{ background: 'var(--bg)' }}>
+        {auth && <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />}
         <div
           className={`flex-1 transition-all duration-300 ease-in-out ${
             auth
-              ? `${isSidebarOpen ? 'lg:ml-72' : 'lg:ml-0'} bg-[#161f30] p-4 sm:p-6 lg:p-8`
-              : 'bg-[#0b0f19] p-0'
+              ? `${isSidebarOpen ? 'lg:ml-72' : 'lg:ml-0'} p-4 sm:p-6 lg:p-8`
+              : 'p-0'
           }`}
+          style={{ background: 'var(--bg)' }}
         >
           <Routes>
             <Route path="/login" element={auth ? <Navigate to="/" replace /> : <Login />} />

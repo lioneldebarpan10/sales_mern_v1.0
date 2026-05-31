@@ -161,4 +161,59 @@ async function getPaymentHistory(req, res) {
    }
 }
 
-module.exports = { createPayment, getPaymentHistory }
+async function recordPaymentRecovery(req, res) {
+   try {
+      const { paymentId } = req.params
+      const { amount, notes } = req.body
+
+      if (!paymentId || !amount) {
+         return res.status(400).json({
+            message: "Payment ID and amount are required"
+         })
+      }
+
+      const recoveryAmount = parseFloat(amount)
+      if (recoveryAmount <= 0) {
+         return res.status(400).json({
+            message: "Recovery amount must be greater than 0"
+         })
+      }
+
+      const payment = await paymentModel.findById(paymentId)
+      if (!payment) {
+         return res.status(404).json({
+            message: "Payment not found"
+         })
+      }
+
+      const canRecover = payment.dueAmount
+
+      if (recoveryAmount > canRecover) {
+         return res.status(400).json({
+            message: `Cannot recover more than due amount. Remaining due: $${canRecover}`
+         })
+      }
+
+      payment.paymentRecovery.push({
+         amount: recoveryAmount,
+         recoveryDate: new Date(),
+         notes: notes || ''
+      })
+
+      const totalRecoveredNow = (payment.paymentRecovery || []).reduce((sum, r) => sum + r.amount, 0)
+      payment.paidAmount = payment.paidAmount + recoveryAmount
+      payment.dueAmount = payment.totalAmount - payment.paidAmount
+
+      await payment.save()
+
+      res.status(200).json({
+         message: "Payment recovery recorded successfully",
+         data: payment
+      })
+   } catch (error) {
+      console.log("Record Payment Recovery Error:", error.message)
+      res.status(500).json({ message: "Internal Server Error" })
+   }
+}
+
+module.exports = { createPayment, getPaymentHistory, recordPaymentRecovery }

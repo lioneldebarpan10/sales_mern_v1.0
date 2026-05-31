@@ -26,6 +26,19 @@ const paymentSchema = new mongoose.Schema({
       type: Number,
       required: true
    },
+   paymentRecovery: [{
+      amount: {
+         type: Number,
+         required: true
+      },
+      recoveryDate: {
+         type: Date,
+         default: Date.now
+      },
+      notes: {
+         type: String
+      }
+   }],
    paymentDate: {
       type: Date,
       default: Date.now

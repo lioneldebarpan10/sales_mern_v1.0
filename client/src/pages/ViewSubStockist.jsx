@@ -20,13 +20,13 @@ const EmptyState = ({ search }) => (
     <tr>
         <td colSpan={6}>
             <div className="py-16 flex flex-col items-center gap-3 text-center">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#0f172a' }}>
-                    <Users size={26} color="#64748b" />
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'var(--surface-alt)' }}>
+                    <Users size={26} color="var(--muted)" />
                 </div>
-                <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>
+                <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
                     {search ? `No results for "${search}"` : 'No substockists yet'}
                 </p>
-                <p className="text-xs" style={{ color: '#64748b' }}>
+                <p className="text-xs" style={{ color: 'var(--muted)' }}>
                     {search ? 'Try a different search term.' : 'Add your first substockist to get started.'}
                 </p>
             </div>
@@ -106,7 +106,7 @@ const ViewSubStockist = () => {
                 {/* Controls */}
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
                     <div className="relative flex-1">
-                        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#94a3b8' }} />
+                        <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--muted)' }} />
                         <input
                             type="text"
                             id="substockist-search"
@@ -114,9 +114,9 @@ const ViewSubStockist = () => {
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl outline-none transition-all duration-200"
-                            style={{ border: '1.5px solid rgba(255,255,255,0.1)', background: '#0f172a', color: '#f1f5f9' }}
-                            onFocus={e => { e.target.style.borderColor='#818cf8'; e.target.style.boxShadow='0 0 0 3px rgba(99,102,241,0.2)'; e.target.style.background='#0f172a'; }}
-                            onBlur={e => { e.target.style.borderColor='rgba(255,255,255,0.1)'; e.target.style.boxShadow='none'; e.target.style.background='#0f172a'; }}
+                            style={{ border: '1.5px solid var(--input-border)', background: 'var(--surface-alt)', color: 'var(--text)' }}
+                            onFocus={e => { e.target.style.borderColor='var(--primary)'; e.target.style.boxShadow='0 0 0 3px var(--primary-light)'; e.target.style.background='var(--surface-alt)'; }}
+                            onBlur={e => { e.target.style.borderColor='var(--input-border)'; e.target.style.boxShadow='none'; e.target.style.background='var(--surface-alt)'; }}
                         />
                     </div>
 
@@ -125,7 +125,7 @@ const ViewSubStockist = () => {
                         id="refresh-btn"
                         onClick={() => fetchSubstockists(searchTerm)}
                         className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200"
-                        style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', boxShadow: '0 4px 14px rgba(79,70,229,0.3)' }}
+                        style={{ background: 'var(--primary-gradient)', color: '#fff', boxShadow: '0 4px 14px var(--primary-light)' }}
                     >
                         <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
                         Refresh
@@ -133,7 +133,7 @@ const ViewSubStockist = () => {
                 </div>
 
                 {/* Summary pill */}
-                {!loading && !error && (
+                {!loading && (
                     <div className="mb-4">
                         <span className="badge badge-neutral">
                             {substockists.length} {substockists.length === 1 ? 'partner' : 'partners'} found
@@ -161,7 +161,7 @@ const ViewSubStockist = () => {
                                 substockists.map(item => (
                                     <tr key={item._id}>
                                         <td>
-                                            <span className="text-xs" style={{ color: '#94a3b8' }}>
+                                            <span className="text-xs" style={{ color: 'var(--muted)' }}>
                                                 {new Date(item.createdAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' })}
                                             </span>
                                         </td>
@@ -172,25 +172,25 @@ const ViewSubStockist = () => {
                                             <div className="flex items-center gap-2.5">
                                                 <div
                                                     className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                                                    style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff' }}
+                                                    style={{ background: 'var(--primary-gradient)', color: '#fff' }}
                                                 >
                                                     {item.firstName?.[0]}{item.lastName?.[0]}
                                                 </div>
-                                                <span className="font-semibold text-sm" style={{ color: '#f1f5f9' }}>
+                                                <span className="font-semibold text-sm" style={{ color: 'var(--text)' }}>
                                                     {item.firstName} {item.middleName ? item.middleName + ' ' : ''}{item.lastName}
                                                 </span>
                                             </div>
                                         </td>
-                                        <td style={{ color: '#cbd5e1' }}>{item.phone}</td>
-                                        <td style={{ color: '#94a3b8' }}>{item.email || '—'}</td>
+                                        <td style={{ color: 'var(--text)' }}>{item.phone}</td>
+                                        <td style={{ color: 'var(--muted)' }}>{item.email || '—'}</td>
                                         <td>
                                             <div className="flex items-center gap-2">
                                                 <Link
                                                     to={`/view-substockist/${item._id}`}
                                                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
-                                                    style={{ background: 'rgba(99,102,241,0.12)', color: '#a5b4fc' }}
-                                                    onMouseEnter={e => { e.currentTarget.style.background='rgba(99,102,241,0.22)'; }}
-                                                    onMouseLeave={e => { e.currentTarget.style.background='rgba(99,102,241,0.12)'; }}
+                                                    style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}
+                                                    onMouseEnter={e => { e.currentTarget.style.background='var(--primary-light-border)'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.background='var(--primary-light)'; }}
                                                 >
                                                     <Eye size={13} /> View
                                                 </Link>

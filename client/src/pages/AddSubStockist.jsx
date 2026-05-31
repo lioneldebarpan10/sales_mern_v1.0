@@ -23,9 +23,9 @@ const Field = ({ label, optional, icon, children }) => (
 
 const inputCls = 'w-full pl-10 pr-4 py-3 text-sm rounded-xl transition-all duration-200 outline-none';
 const inputStyle = {
-    border: '1.5px solid rgba(255,255,255,0.1)',
-    background: '#0f172a',
-    color: '#f1f5f9',
+    border: '1.5px solid var(--input-border)',
+    background: 'var(--surface-alt)',
+    color: 'var(--text)',
     fontFamily: 'Inter,sans-serif',
 };
 
@@ -41,13 +41,13 @@ const AddSubStockist = () => {
     const handleChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
     const handleFocus = e => {
-        e.target.style.borderColor = '#818cf8';
-        e.target.style.background = '#0f172a';
-        e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.2)';
+        e.target.style.borderColor = 'var(--primary)';
+        e.target.style.background = 'var(--surface-alt)';
+        e.target.style.boxShadow = '0 0 0 3px var(--primary-light)';
     };
     const handleBlur = e => {
-        e.target.style.borderColor = 'rgba(255,255,255,0.1)';
-        e.target.style.background = '#0f172a';
+        e.target.style.borderColor = 'var(--input-border)';
+        e.target.style.background = 'var(--surface-alt)';
         e.target.style.boxShadow = 'none';
     };
 
@@ -147,14 +147,14 @@ const AddSubStockist = () => {
 
                     {/* Actions */}
                     <div className="flex flex-col sm:flex-row justify-between items-center gap-4 pt-4"
-                        style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                        style={{ borderTop: '1px solid var(--border)' }}>
                         <button
                             type="button"
                             onClick={() => navigate('/view-substockist')}
                             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer"
-                            style={{ background: '#0f172a', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.08)' }}
-                            onMouseEnter={e => { e.currentTarget.style.borderColor = '#818cf8'; e.currentTarget.style.color = '#f1f5f9'; }}
-                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.color = '#94a3b8'; }}
+                            style={{ background: 'var(--surface-alt)', color: 'var(--text)', border: '1px solid var(--border)' }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--primary)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
                         >
                             <Users size={16} />
                             View All Substockists
@@ -167,8 +167,8 @@ const AddSubStockist = () => {
                             disabled={loading}
                             className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200"
                             style={{
-                                background: loading ? '#a5b4fc' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-                                boxShadow: loading ? 'none' : '0 6px 20px rgba(79,70,229,0.35)',
+                                background: loading ? 'var(--primary-light)' : 'var(--primary-gradient)',
+                                boxShadow: loading ? 'none' : '0 6px 20px var(--primary-light)',
                                 cursor: loading ? 'not-allowed' : 'pointer',
                             }}
                         >

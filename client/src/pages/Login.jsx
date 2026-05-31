@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Lock, Mail, TrendingUp, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
+  const isLight = (localStorage.getItem('salesify-theme') || 'dark') === 'light';
   const navigate = useNavigate();
   const { auth, loading, login } = useAuth();
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -36,7 +37,9 @@ const Login = () => {
     <div
       className="min-h-screen flex items-center justify-center px-4"
       style={{
-        background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 70%, #4c1d95 100%)',
+        background: isLight
+          ? 'linear-gradient(135deg, #f8fafc 0%, #e0f2fe 40%, #bae6fd 70%, #e0f2fe 100%)'
+          : 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 40%, #312e81 70%, #4c1d95 100%)',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -45,19 +48,25 @@ const Login = () => {
       <div style={{
         position: 'absolute', top: '-10%', left: '-5%',
         width: 400, height: 400, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(79,70,229,0.25) 0%, transparent 70%)',
+        background: isLight
+          ? 'radial-gradient(circle, rgba(2,132,199,0.15) 0%, transparent 70%)'
+          : 'radial-gradient(circle, rgba(79,70,229,0.25) 0%, transparent 70%)',
         filter: 'blur(40px)',
       }} />
       <div style={{
         position: 'absolute', bottom: '-15%', right: '-5%',
         width: 500, height: 500, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%)',
+        background: isLight
+          ? 'radial-gradient(circle, rgba(6,182,212,0.12) 0%, transparent 70%)'
+          : 'radial-gradient(circle, rgba(124,58,237,0.2) 0%, transparent 70%)',
         filter: 'blur(50px)',
       }} />
       <div style={{
         position: 'absolute', top: '40%', right: '20%',
         width: 200, height: 200, borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)',
+        background: isLight
+          ? 'radial-gradient(circle, rgba(2,132,199,0.1) 0%, transparent 70%)'
+          : 'radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 70%)',
         filter: 'blur(30px)',
       }} />
 
@@ -65,13 +74,13 @@ const Login = () => {
       <div
         className="w-full max-w-md animate-slide-up relative"
         style={{
-          background: 'rgba(255,255,255,0.05)',
+          background: isLight ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.05)',
           backdropFilter: 'blur(24px)',
           WebkitBackdropFilter: 'blur(24px)',
-          border: '1px solid rgba(255,255,255,0.1)',
+          border: isLight ? '1px solid rgba(2,132,199,0.15)' : '1px solid rgba(255,255,255,0.1)',
           borderRadius: '1.75rem',
           padding: '2.5rem',
-          boxShadow: '0 25px 80px rgba(0,0,0,0.4)',
+          boxShadow: isLight ? '0 25px 80px rgba(2,132,199,0.12)' : '0 25px 80px rgba(0,0,0,0.4)',
         }}
       >
         {/* Logo */}
@@ -79,14 +88,14 @@ const Login = () => {
           <div
             className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4"
             style={{
-              background: 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-              boxShadow: '0 8px 24px rgba(79,70,229,0.5)',
+              background: isLight ? 'linear-gradient(135deg,#0284c7,#06b6d4)' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
+              boxShadow: isLight ? '0 8px 24px rgba(2,132,199,0.3)' : '0 8px 24px rgba(79,70,229,0.5)',
             }}
           >
             <TrendingUp size={26} color="#fff" />
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Welcome back</h1>
-          <p className="text-sm mt-1" style={{ color: 'rgba(255,255,255,0.45)' }}>
+          <h1 className={`text-2xl font-bold tracking-tight ${isLight ? 'text-[#0f172a]' : 'text-white'}`}>Welcome back</h1>
+          <p className="text-sm mt-1" style={{ color: isLight ? 'rgba(15,23,42,0.6)' : 'rgba(255,255,255,0.45)' }}>
             Sign in to your SalesiFy dashboard
           </p>
         </div>
@@ -105,11 +114,11 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Email */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: isLight ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.5)' }}>
               Email Address
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" style={{ color: isLight ? 'rgba(15,23,42,0.5)' : 'rgba(255,255,255,0.35)' }}>
                 <Mail size={17} />
               </span>
               <input
@@ -127,26 +136,26 @@ const Login = () => {
                   paddingTop: '0.8rem',
                   paddingBottom: '0.8rem',
                   borderRadius: '0.875rem',
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1.5px solid rgba(255,255,255,0.1)',
-                  color: '#fff',
+                  background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.07)',
+                  border: isLight ? '1.5px solid rgba(2,132,199,0.2)' : '1.5px solid rgba(255,255,255,0.1)',
+                  color: isLight ? '#0f172a' : '#fff',
                   fontSize: '0.875rem',
                   outline: 'none',
                   transition: 'all 0.2s',
                 }}
-                onFocus={e => { e.target.style.borderColor = 'rgba(129,140,248,0.7)'; e.target.style.background = 'rgba(255,255,255,0.09)'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.2)'; }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.07)'; e.target.style.boxShadow = 'none'; }}
+                onFocus={e => { e.target.style.borderColor = isLight ? 'rgba(2,132,199,0.7)' : 'rgba(129,140,248,0.7)'; e.target.style.background = isLight ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.09)'; e.target.style.boxShadow = isLight ? '0 0 0 3px rgba(2,132,199,0.15)' : '0 0 0 3px rgba(79,70,229,0.2)'; }}
+                onBlur={e => { e.target.style.borderColor = isLight ? 'rgba(2,132,199,0.2)' : 'rgba(255,255,255,0.1)'; e.target.style.background = isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.07)'; e.target.style.boxShadow = 'none'; }}
               />
             </div>
           </div>
 
           {/* Password */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: isLight ? 'rgba(15,23,42,0.7)' : 'rgba(255,255,255,0.5)' }}>
               Password
             </label>
             <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none" style={{ color: isLight ? 'rgba(15,23,42,0.5)' : 'rgba(255,255,255,0.35)' }}>
                 <Lock size={17} />
               </span>
               <input
@@ -164,21 +173,21 @@ const Login = () => {
                   paddingTop: '0.8rem',
                   paddingBottom: '0.8rem',
                   borderRadius: '0.875rem',
-                  background: 'rgba(255,255,255,0.07)',
-                  border: '1.5px solid rgba(255,255,255,0.1)',
-                  color: '#fff',
+                  background: isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.07)',
+                  border: isLight ? '1.5px solid rgba(2,132,199,0.2)' : '1.5px solid rgba(255,255,255,0.1)',
+                  color: isLight ? '#0f172a' : '#fff',
                   fontSize: '0.875rem',
                   outline: 'none',
                   transition: 'all 0.2s',
                 }}
-                onFocus={e => { e.target.style.borderColor = 'rgba(129,140,248,0.7)'; e.target.style.background = 'rgba(255,255,255,0.09)'; e.target.style.boxShadow = '0 0 0 3px rgba(79,70,229,0.2)'; }}
-                onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.07)'; e.target.style.boxShadow = 'none'; }}
+                onFocus={e => { e.target.style.borderColor = isLight ? 'rgba(2,132,199,0.7)' : 'rgba(129,140,248,0.7)'; e.target.style.background = isLight ? 'rgba(255,255,255,1)' : 'rgba(255,255,255,0.09)'; e.target.style.boxShadow = isLight ? '0 0 0 3px rgba(2,132,199,0.15)' : '0 0 0 3px rgba(79,70,229,0.2)'; }}
+                onBlur={e => { e.target.style.borderColor = isLight ? 'rgba(2,132,199,0.2)' : 'rgba(255,255,255,0.1)'; e.target.style.background = isLight ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.07)'; e.target.style.boxShadow = 'none'; }}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(v => !v)}
                 className="absolute inset-y-0 right-0 pr-4 flex items-center"
-                style={{ color: 'rgba(255,255,255,0.35)', background: 'none', border: 'none', cursor: 'pointer' }}
+                style={{ color: isLight ? 'rgba(15,23,42,0.5)' : 'rgba(255,255,255,0.35)', background: 'none', border: 'none', cursor: 'pointer' }}
               >
                 {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
@@ -192,8 +201,12 @@ const Login = () => {
             disabled={submitting || loading}
             className="w-full mt-2 py-3.5 rounded-2xl font-semibold text-sm text-white transition-all duration-200"
             style={{
-              background: submitting ? 'rgba(79,70,229,0.5)' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-              boxShadow: submitting ? 'none' : '0 8px 24px rgba(79,70,229,0.45)',
+              background: submitting
+                ? (isLight ? 'rgba(2,132,199,0.5)' : 'rgba(79,70,229,0.5)')
+                : (isLight ? 'linear-gradient(135deg,#0284c7,#06b6d4)' : 'linear-gradient(135deg,#4f46e5,#7c3aed)'),
+              boxShadow: submitting
+                ? 'none'
+                : (isLight ? '0 8px 24px rgba(2,132,199,0.3)' : '0 8px 24px rgba(79,70,229,0.45)'),
               cursor: submitting ? 'not-allowed' : 'pointer',
               transform: submitting ? 'none' : undefined,
             }}
@@ -212,7 +225,7 @@ const Login = () => {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-xs" style={{ color: 'rgba(255,255,255,0.25)' }}>
+        <p className="mt-6 text-center text-xs" style={{ color: isLight ? 'rgba(15,23,42,0.4)' : 'rgba(255,255,255,0.25)' }}>
           SalesiFy Admin Portal · All rights reserved
         </p>
       </div>

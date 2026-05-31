@@ -57,7 +57,7 @@ const StatCard = ({ title, value, prefix, icon, gradient, delay = 0, badge }) =>
         </div>
         <div>
             <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>{title}</p>
-            <h4 className="text-2xl font-bold animate-count-up" style={{ color: '#f8fafc' }}>
+            <h4 className="text-2xl font-bold animate-count-up" style={{ color: 'var(--text)' }}>
                 <AnimatedNumber value={value} prefix={prefix} />
             </h4>
         </div>
@@ -65,6 +65,7 @@ const StatCard = ({ title, value, prefix, icon, gradient, delay = 0, badge }) =>
 );
 
 const MainDashboard = () => {
+    const isLight = (localStorage.getItem('salesify-theme') || 'dark') === 'light';
     const [chartPeriod, setChartPeriod] = useState('Weekly');
     const [summary, setSummary] = useState({ total: 0, paid: 0, due: 0, activeCount: 0 });
     const [chartData, setChartData] = useState({ categories: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'], series: [] });
@@ -158,7 +159,7 @@ const MainDashboard = () => {
 
     const chartOptions = {
         chart: { type: 'bar', toolbar: { show: false }, background: 'transparent', fontFamily: 'Inter,sans-serif' },
-        colors: ['#4f46e5', '#10b981', '#f43f5e'],
+        colors: isLight ? ['#0284c7', '#10b981', '#f43f5e'] : ['#4f46e5', '#10b981', '#f43f5e'],
         plotOptions: {
             bar: { horizontal: false, columnWidth: '50%', borderRadius: 6, borderRadiusApplication: 'end' },
         },
@@ -166,12 +167,12 @@ const MainDashboard = () => {
         stroke: { show: true, width: 2, colors: ['transparent'] },
         xaxis: {
             categories: chartData.categories,
-            labels: { style: { colors: '#94a3b8', fontSize: '12px', fontWeight: 500 } },
+            labels: { style: { colors: isLight ? '#475569' : '#94a3b8', fontSize: '12px', fontWeight: 500 } },
             axisBorder: { show: false }, axisTicks: { show: false },
         },
         yaxis: {
             labels: {
-                style: { colors: '#94a3b8', fontSize: '12px', fontWeight: 500 },
+                style: { colors: isLight ? '#475569' : '#94a3b8', fontSize: '12px', fontWeight: 500 },
                 formatter: v => v >= 1000 ? `$${(v/1000).toFixed(0)}k` : `$${v}`,
             },
         },
@@ -179,13 +180,14 @@ const MainDashboard = () => {
             type: 'gradient',
             gradient: { shade: 'dark', type: 'vertical', shadeIntensity: 0.15, opacityFrom: 1, opacityTo: 0.85 },
         },
-        tooltip: { y: { formatter: val => `$${val.toLocaleString()}` }, theme: 'dark' },
-        grid: { show: true, borderColor: 'rgba(255,255,255,0.06)', strokeDashArray: 4 },
-        legend: { position: 'top', horizontalAlign: 'right', fontWeight: 600, fontSize: '13px', labels: { colors: '#94a3b8' } },
+        tooltip: { y: { formatter: val => `$${val.toLocaleString()}` }, theme: isLight ? 'light' : 'dark' },
+        grid: { show: true, borderColor: isLight ? 'rgba(15,23,42,0.08)' : 'rgba(255,255,255,0.06)', strokeDashArray: 4 },
+        legend: { position: 'top', horizontalAlign: 'right', fontWeight: 600, fontSize: '13px', labels: { colors: isLight ? '#475569' : '#94a3b8' } },
     };
 
+
     const statCards = [
-        { title: 'Total Revenue',   value: summary.total,  prefix: '$', gradient: 'linear-gradient(135deg,#4338ca,#4f46e5)', icon: <DollarSign size={22} color="#fff" /> },
+        { title: 'Total Revenue',   value: summary.total,  prefix: '$', gradient: 'var(--revenue-gradient)', icon: <DollarSign size={22} color="#fff" /> },
         { title: 'Paid Amount',     value: summary.paid,   prefix: '$', gradient: 'linear-gradient(135deg,#059669,#10b981)', icon: <CheckCircle2 size={22} color="#fff" /> },
         { title: 'Due Amount',      value: summary.due,    prefix: '$', gradient: 'linear-gradient(135deg,#e11d48,#f43f5e)', icon: <Clock size={22} color="#fff" /> },
     ];
@@ -241,32 +243,32 @@ const MainDashboard = () => {
                     <div
                         className="card animate-slide-up p-6 flex flex-col justify-between flex-1"
                         style={{
-                            background: 'linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%)',
-                            border: '1px solid rgba(79,70,229,0.2)',
-                            boxShadow: '0 8px 32px rgba(79,70,229,0.15)',
+                            background: 'var(--active-card-bg)',
+                            border: '1px solid var(--active-card-border)',
+                            boxShadow: 'var(--active-card-shadow)',
                         }}
                     >
                         <div>
                             <div
                                 className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4"
-                                style={{ background: 'linear-gradient(135deg,rgba(79,70,229,0.3),rgba(124,58,237,0.2))', border: '1px solid rgba(79,70,229,0.3)' }}
+                                style={{ background: 'var(--active-card-icon-bg)', border: '1px solid var(--active-card-icon-border)' }}
                             >
-                                <Users size={24} color="#818cf8" />
+                                <Users size={24} color="var(--primary)" />
                             </div>
                             <div className="flex items-baseline gap-2">
                                 <h3
                                     className="text-4xl font-bold mb-1 animate-count-up"
-                                    style={{ background: 'linear-gradient(135deg,#818cf8,#a78bfa)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}
+                                    style={{ background: 'var(--active-card-title-bg)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}
                                 >
                                     {loadingSummary ? '—' : <AnimatedNumber value={summary.activeCount} />}
                                 </h3>
-                                <p className="text-base font-semibold" style={{ color: '#c7d2fe' }}>Active Substockists</p>
+                                <p className="text-base font-semibold" style={{ color: 'var(--active-card-title-text)' }}>Active Substockists</p>
                             </div>
-                            <p className="text-xs mt-2" style={{ color: 'rgba(199,210,254,0.55)' }}>
+                            <p className="text-xs mt-2" style={{ color: 'var(--active-card-desc-text)' }}>
                                 Live partner count with real-time dashboard status.
                             </p>
                         </div>
-                        <div className="mt-4 pt-3 flex items-center justify-between" style={{ borderTop: '1px solid rgba(79,70,229,0.2)' }}>
+                        <div className="mt-4 pt-3 flex items-center justify-between" style={{ borderTop: '1px solid var(--active-card-border)' }}>
                             <div className="flex items-center gap-2">
                                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                                 <span className="text-xs font-medium" style={{ color: '#6ee7b7' }}>Live data</span>
@@ -279,10 +281,10 @@ const MainDashboard = () => {
                 <div className="xl:col-span-2 card p-6 animate-slide-up flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <CreditCard size={18} color="#818cf8" />
-                            <h3 className="text-sm font-bold text-white">Latest Payments</h3>
+                            <CreditCard size={18} color="var(--primary)" />
+                            <h3 className="text-sm font-bold text-[var(--text)]">Latest Payments</h3>
                         </div>
-                        <a href="/payment-history" className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors">
+                        <a href="/payment-history" className="text-xs font-semibold text-[var(--primary)] hover:opacity-85 transition-colors">
                             View All
                         </a>
                     </div>
@@ -322,12 +324,12 @@ const MainDashboard = () => {
                                                 {initials}
                                             </div>
                                             <div>
-                                                <p className="text-xs font-semibold text-slate-100">{name}</p>
+                                                <p className="text-xs font-semibold text-[var(--text)]">{name}</p>
                                                 <p className="text-[10px] text-slate-500">ID: {sub.substockistId || '—'}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs font-bold text-slate-100">${p.totalAmount.toLocaleString()}</p>
+                                            <p className="text-xs font-bold text-[var(--text)]">${p.totalAmount.toLocaleString()}</p>
                                             <div className="flex items-center gap-1.5 justify-end mt-0.5">
                                                 <span className="text-[9px] text-slate-500">{dateStr}</span>
                                                 <span className={`w-1.5 h-1.5 rounded-full ${isPaid ? 'bg-emerald-400 shadow-[0_0_6px_#34d399]' : 'bg-rose-400 shadow-[0_0_6px_#f43f5e]'}`} />
@@ -345,18 +347,18 @@ const MainDashboard = () => {
             <div className="card p-6 mb-6">
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
                     <div>
-                        <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#94a3b8' }}>Analytics</p>
-                        <h3 className="text-lg font-bold" style={{ color: '#f8fafc' }}>Revenue Chart</h3>
+                        <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--muted)' }}>Analytics</p>
+                        <h3 className="text-lg font-bold" style={{ color: 'var(--text)' }}>Revenue Chart</h3>
                     </div>
-                    <div className="inline-flex gap-1 p-1 rounded-xl" style={{ background: '#0f172a' }}>
+                    <div className="inline-flex gap-1 p-1 rounded-xl" style={{ background: 'var(--surface-alt)' }}>
                         {['Weekly','Monthly','Yearly'].map(p => (
                             <button
                                 key={p}
                                 onClick={() => setChartPeriod(p)}
                                 className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 cursor-pointer"
                                 style={chartPeriod === p
-                                    ? { background: '#1e293b', color: '#818cf8', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)' }
-                                    : { background: 'transparent', color: '#94a3b8' }
+                                    ? { background: 'var(--surface-strong)', color: 'var(--primary)', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border)' }
+                                    : { background: 'transparent', color: 'var(--muted)' }
                                 }
                             >
                                 {p}
@@ -386,12 +388,12 @@ const MainDashboard = () => {
             {/* ── Yearly Overview ── */}
             <div>
                 <div className="flex items-center gap-2 mb-4">
-                    <TrendingUp size={18} color="#6366f1" />
-                    <h3 className="text-lg font-bold" style={{ color: '#f8fafc' }}>Yearly Overview</h3>
+                    <TrendingUp size={18} color="var(--primary)" />
+                    <h3 className="text-lg font-bold" style={{ color: 'var(--text)' }}>Yearly Overview</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                     {[
-                        { title: 'Yearly Total',  value: summary.total, prefix: '$', gradient: 'linear-gradient(135deg,#1e3a8a,#1d4ed8)', icon: <DollarSign size={22} color="#fff" /> },
+                        { title: 'Yearly Total',  value: summary.total, prefix: '$', gradient: 'var(--revenue-gradient)', icon: <DollarSign size={22} color="#fff" /> },
                         { title: 'Yearly Paid',   value: summary.paid,  prefix: '$', gradient: 'linear-gradient(135deg,#065f46,#059669)', icon: <CheckCircle2 size={22} color="#fff" /> },
                         { title: 'Yearly Due',    value: summary.due,   prefix: '$', gradient: 'linear-gradient(135deg,#7f1d1d,#b91c1c)', icon: <Clock size={22} color="#fff" /> },
                     ].map((c, i) => (

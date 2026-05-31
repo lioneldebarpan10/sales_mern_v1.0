@@ -4,19 +4,84 @@
 
 /* ── Design Tokens ─────────────────────────────────── */
 :root {
-  --clr-primary:       #6366f1;
-  --clr-primary-dark:  #4f46e5;
-  --clr-primary-light: #818cf8;
-  --clr-purple:        #8b5cf6;
-  --clr-sidebar-bg:    #0f172a;
-  --clr-sidebar-hover: rgba(255,255,255,0.06);
-  --clr-sidebar-active:#6366f1;
-  --clr-emerald:       #10b981;
-  --clr-rose:          #f43f5e;
-  --radius-card:       1.5rem;
-  --shadow-card:       0 8px 32px rgba(0,0,0,0.25);
+  color-scheme: dark;
+  --bg: #161f30;
+  --surface: #0f172a;
+  --surface-strong: #1e293b;
+  --surface-alt: #273549;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --border: rgba(255,255,255,0.06);
+  --shadow-card: 0 8px 32px rgba(0,0,0,0.25);
   --shadow-card-hover: 0 12px 48px rgba(99,102,241,0.2);
-  --transition-base:   all 0.22s cubic-bezier(0.4,0,0.2,1);
+  --transition-base: all 0.22s cubic-bezier(0.4,0,0.2,1);
+  --input-border: rgba(255,255,255,0.1);
+
+  /* Brand Theme variables - Dark Theme (Indigo/Purple) */
+  --primary: #6366f1;
+  --primary-hover: #4f46e5;
+  --primary-active: #4338ca;
+  --primary-light: rgba(99,102,241,0.12);
+  --primary-light-border: rgba(99,102,241,0.22);
+  --primary-gradient: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  --primary-text-gradient: linear-gradient(135deg, #818cf8, #a78bfa);
+  --revenue-gradient: linear-gradient(135deg, #4338ca, #4f46e5);
+
+  --active-card-bg: linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%);
+  --active-card-border: rgba(79,70,229,0.2);
+  --active-card-shadow: 0 8px 32px rgba(79,70,229,0.15);
+  --active-card-title-bg: linear-gradient(135deg,#818cf8,#a78bfa);
+  --active-card-title-text: #c7d2fe;
+  --active-card-desc-text: rgba(199,210,254,0.55);
+  --active-card-icon-bg: linear-gradient(135deg,rgba(79,70,229,0.3),rgba(124,58,237,0.2));
+  --active-card-icon-border: rgba(79,70,229,0.3);
+
+  --due-color: #fda4af;
+  --paid-color: #34d399;
+  --strip-total-text: #818cf8;
+  --strip-paid-text: #34d399;
+  --strip-due-text: #fda4af;
+}
+
+.light {
+  color-scheme: light;
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-strong: #e2e8f0;
+  --surface-alt: #f1f5f9;
+  --text: #0f172a;
+  --text-secondary: #334155;
+  --muted: #475569;
+  --muted-light: #64748b;
+  --border: rgba(15,23,42,0.1);
+  --shadow-card: 0 8px 32px rgba(15,23,42,0.08);
+  --shadow-card-hover: 0 12px 48px rgba(2,132,199,0.12);
+  --input-border: rgba(15,23,42,0.2);
+
+  /* Brand Theme variables - Light Theme (Sky-blue/Cyan) */
+  --primary: #0284c7;
+  --primary-hover: #0369a1;
+  --primary-active: #075985;
+  --primary-light: rgba(2,132,199,0.1);
+  --primary-light-border: rgba(2,132,199,0.2);
+  --primary-gradient: linear-gradient(135deg, #0284c7 0%, #06b6d4 100%);
+  --primary-text-gradient: linear-gradient(135deg, #0284c7, #0ea5e9);
+  --revenue-gradient: linear-gradient(135deg, #0369a1, #0284c7);
+
+  --active-card-bg: linear-gradient(135deg,#ffffff 0%,#f0f9ff 100%);
+  --active-card-border: rgba(2,132,199,0.2);
+  --active-card-shadow: 0 8px 32px rgba(2,132,199,0.08);
+  --active-card-title-bg: linear-gradient(135deg,#0284c7,#06b6d4);
+  --active-card-title-text: #0369a1;
+  --active-card-desc-text: rgba(2,132,199,0.7);
+  --active-card-icon-bg: linear-gradient(135deg,rgba(2,132,199,0.15),rgba(6,182,212,0.1));
+  --active-card-icon-border: rgba(2,132,199,0.2);
+
+  --due-color: #b91c1c;
+  --paid-color: #047857;
+  --strip-total-text: #0284c7;
+  --strip-paid-text: #047857;
+  --strip-due-text: #b91c1c;
 }
 
 /* ── Base ───────────────────────────────────────────── */
@@ -26,8 +91,8 @@
 }
 
 body {
-  background: #161f30;
-  color: #f1f5f9;
+  background: var(--bg);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -80,10 +145,10 @@ body {
 .animate-count-up   { animation: countUp   0.5s ease forwards; }
 
 .card {
-  background: #1e293b;
+  background: var(--surface);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
   transition: var(--transition-base);
 }
 .card:hover {
@@ -98,6 +163,9 @@ body {
 /* ── Gradient Utilities ─────────────────────────────── */
 .gradient-primary {
   background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+}
+.light .gradient-primary {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
 }
 .gradient-emerald {
   background: linear-gradient(135deg, #059669 0%, #10b981 100%);
@@ -117,6 +185,12 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+.light .text-gradient {
+  background: linear-gradient(135deg, #0891b2, #06b6d4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
 /* ── Skeleton Loader ────────────────────────────────── */
 .skeleton {
@@ -130,25 +204,38 @@ body {
   animation: shimmer 1.5s infinite linear;
   border-radius: 0.5rem;
 }
+.light .skeleton {
+  background: linear-gradient(
+    90deg,
+    #e2e8f0 25%,
+    #cbd5e1 50%,
+    #e2e8f0 75%
+  );
+  background-size: 600px 100%;
+}
 
 /* ── Premium Inputs ─────────────────────────────────── */
 .input-field {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.75rem;
   border-radius: 0.875rem;
-  border: 1.5px solid rgba(255,255,255,0.1);
-  background: #0f172a;
+  border: 1.5px solid var(--input-border);
+  background: var(--surface);
   font-size: 0.875rem;
-  color: #f1f5f9;
+  color: var(--text);
   outline: none;
   transition: var(--transition-base);
 }
 .input-field:focus {
-  border-color: var(--clr-primary-light);
-  background: #0f172a;
-  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+  border-color: #06b6d4;
+  background: var(--surface);
+  box-shadow: 0 0 0 3px rgba(6,182,212,0.15);
 }
-.input-field::placeholder { color: #64748b; }
+.input-field::placeholder { color: var(--muted); }
+.light .input-field:focus {
+  border-color: #0891b2;
+  box-shadow: 0 0 0 3px rgba(8,145,178,0.15);
+}
 
 /* ── Status Badges ──────────────────────────────────── */
 .badge {
@@ -221,6 +308,20 @@ body {
 .premium-table tbody tr:hover {
   background: linear-gradient(135deg, #1e293b 0%, #273549 100%);
 }
+.light .premium-table thead tr {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+.light .premium-table th {
+  color: var(--text-secondary);
+  border-bottom: 2px solid rgba(15,23,42,0.1);
+}
+.light .premium-table td {
+  color: var(--text);
+  border-bottom: 1px solid rgba(15,23,42,0.05);
+}
+.light .premium-table tbody tr:hover {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
 
 /* ── Page Header ────────────────────────────────────── */
 .page-header {
@@ -251,12 +352,28 @@ body {
   background: rgba(255,255,255,0.04);
   border-radius: 50%;
 }
+.light .page-header {
+  background: linear-gradient(135deg, #0369a1 0%, #0891b2 50%, #06b6d4 100%);
+}
 
 /* ── Scrollbar ──────────────────────────────────────── */
 .custom-scrollbar::-webkit-scrollbar        { height: 6px; width: 6px; }
-.custom-scrollbar::-webkit-scrollbar-track  { background: #0f172a; border-radius: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb  { background: #334155; border-radius: 4px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #4f46e5; }
+.custom-scrollbar::-webkit-scrollbar-track  { background: var(--surface); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb  { background: var(--surface-strong); border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--surface-alt); }
+
+/* ── Button & Link Utilities ─────────────────────── */
+button,
+a,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+select,
+[role="button"],
+.sidebar-link,
+.cursor-pointer {
+  cursor: pointer !important;
+}
 
 /* ── Sidebar ────────────────────────────────────────── */
 .sidebar-link {
@@ -291,4 +408,18 @@ body {
   width: 3px;
   background: linear-gradient(180deg, #818cf8, #a78bfa);
   border-radius: 0 2px 2px 0;
+}
+.light .sidebar-link {
+  color: var(--muted);
+}
+.light .sidebar-link:hover {
+  background: rgba(8,145,178,0.08);
+  color: var(--text);
+}
+.light .sidebar-link.active {
+  background: linear-gradient(135deg, rgba(8,145,178,0.2), rgba(6,182,212,0.15));
+  color: #0f172a;
+}
+.light .sidebar-link.active::before {
+  background: linear-gradient(180deg, #0891b2, #06b6d4);
 }

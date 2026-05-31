@@ -92,16 +92,16 @@ const PaymentHistory = () => {
       {!loading && payments.length > 0 && (
         <div className="grid grid-cols-3 gap-4 mb-6 animate-slide-up">
           {[
-            { label:'Page Total',  value: totalAmt, icon:<DollarSign size={16} />,    gradient:'linear-gradient(135deg,#4338ca,#4f46e5)', text:'#818cf8', bg:'rgba(99,102,241,0.12)' },
-            { label:'Page Paid',   value: paidAmt,  icon:<CheckCircle2 size={16} />,  gradient:'linear-gradient(135deg,#059669,#10b981)', text:'#34d399', bg:'rgba(16,185,129,0.12)' },
-            { label:'Page Due',    value: dueAmt,   icon:<Clock size={16} />,          gradient:'linear-gradient(135deg,#e11d48,#f43f5e)', text:'#fda4af', bg:'rgba(244,63,94,0.12)' },
+            { label:'Page Total',  value: totalAmt, icon:<DollarSign size={16} />,    gradient:'var(--primary-gradient)', text:'var(--strip-total-text)', bg:'var(--primary-light)' },
+            { label:'Page Paid',   value: paidAmt,  icon:<CheckCircle2 size={16} />,  gradient:'linear-gradient(135deg,#059669,#10b981)', text:'var(--strip-paid-text)', bg:'rgba(16,185,129,0.12)' },
+            { label:'Page Due',    value: dueAmt,   icon:<Clock size={16} />,          gradient:'linear-gradient(135deg,#e11d48,#f43f5e)', text:'var(--strip-due-text)', bg:'rgba(244,63,94,0.12)' },
           ].map(c => (
             <div key={c.label} className="card p-4 flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white" style={{ background: c.gradient }}>
                 {c.icon}
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{c.label}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--muted)' }}>{c.label}</p>
                 <p className="text-lg font-bold" style={{ color: c.text }}>${c.value.toLocaleString()}</p>
               </div>
             </div>
@@ -115,21 +115,21 @@ const PaymentHistory = () => {
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mb-6">
           {/* Search */}
           <div className="relative flex-1">
-            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: '#94a3b8' }} />
+            <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: 'var(--muted)' }} />
             <input
               id="payment-search"
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               placeholder="Search by name, ID or date…"
               className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl outline-none transition-all duration-200"
-              style={{ border: '1.5px solid rgba(255,255,255,0.1)', background: '#0f172a', color: '#f1f5f9' }}
-              onFocus={e => { e.target.style.borderColor='#818cf8'; e.target.style.boxShadow='0 0 0 3px rgba(99,102,241,0.2)'; e.target.style.background='#0f172a'; }}
-              onBlur={e => { e.target.style.borderColor='rgba(255,255,255,0.1)'; e.target.style.boxShadow='none'; e.target.style.background='#0f172a'; }}
+              style={{ border: '1.5px solid var(--input-border)', background: 'var(--surface-alt)', color: 'var(--text)' }}
+              onFocus={e => { e.target.style.borderColor='var(--primary)'; e.target.style.boxShadow='0 0 0 3px var(--primary-light)'; e.target.style.background='var(--surface-alt)'; }}
+              onBlur={e => { e.target.style.borderColor='var(--input-border)'; e.target.style.boxShadow='none'; e.target.style.background='var(--surface-alt)'; }}
             />
           </div>
 
           {/* Status filter */}
-          <div className="inline-flex gap-1 p-1 rounded-xl" style={{ background: '#0f172a' }}>
+          <div className="inline-flex gap-1 p-1 rounded-xl" style={{ background: 'var(--surface-alt)' }}>
             {STATUS_OPTIONS.map(opt => (
               <button
                 key={opt.value}
@@ -137,8 +137,8 @@ const PaymentHistory = () => {
                 onClick={() => setStatus(opt.value)}
                 className="px-4 py-2 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
                 style={status === opt.value
-                  ? { background: '#1e293b', color: '#818cf8', boxShadow: '0 2px 8px rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.06)' }
-                  : { background: 'transparent', color: '#94a3b8' }
+                  ? { background: 'var(--surface-strong)', color: 'var(--primary)', boxShadow: 'var(--shadow-card)', border: '1px solid var(--border)' }
+                  : { background: 'transparent', color: 'var(--muted)' }
                 }
               >
                 {opt.label}
@@ -148,7 +148,7 @@ const PaymentHistory = () => {
 
           {/* Pagination controls */}
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-xs font-medium" style={{ color: '#94a3b8' }}>
+            <span className="text-xs font-medium" style={{ color: 'var(--muted)' }}>
               {page} / {totalPages}
             </span>
             <button
@@ -157,9 +157,9 @@ const PaymentHistory = () => {
               disabled={page <= 1 || loading}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer"
               style={{
-                background: page <= 1 || loading ? '#0f172a' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-                color: page <= 1 || loading ? '#64748b' : '#fff',
-                border: page <= 1 || loading ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                background: page <= 1 || loading ? 'var(--surface-alt)' : 'var(--primary-gradient)',
+                color: page <= 1 || loading ? 'var(--muted)' : '#fff',
+                border: page <= 1 || loading ? '1px solid var(--border)' : 'none',
                 cursor: page <= 1 || loading ? 'not-allowed' : 'pointer',
               }}
             >
@@ -171,9 +171,9 @@ const PaymentHistory = () => {
               disabled={page >= totalPages || loading}
               className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 cursor-pointer"
               style={{
-                background: page >= totalPages || loading ? '#0f172a' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-                color: page >= totalPages || loading ? '#64748b' : '#fff',
-                border: page >= totalPages || loading ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                background: page >= totalPages || loading ? 'var(--surface-alt)' : 'var(--primary-gradient)',
+                color: page >= totalPages || loading ? 'var(--muted)' : '#fff',
+                border: page >= totalPages || loading ? '1px solid var(--border)' : 'none',
                 cursor: page >= totalPages || loading ? 'not-allowed' : 'pointer',
               }}
             >
@@ -211,11 +211,11 @@ const PaymentHistory = () => {
                 <tr>
                   <td colSpan={9}>
                     <div className="py-16 flex flex-col items-center gap-3 text-center">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: '#0f172a' }}>
-                        <CreditCard size={26} color="#64748b" />
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: 'var(--surface-alt)' }}>
+                        <CreditCard size={26} color="var(--muted)" />
                       </div>
-                      <p className="text-sm font-semibold" style={{ color: '#cbd5e1' }}>No payments recorded yet</p>
-                      <p className="text-xs" style={{ color: '#64748b' }}>Generated payments will appear here.</p>
+                      <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>No payments recorded yet</p>
+                      <p className="text-xs" style={{ color: 'var(--muted)' }}>Generated payments will appear here.</p>
                     </div>
                   </td>
                 </tr>
@@ -229,7 +229,7 @@ const PaymentHistory = () => {
                   return (
                     <tr key={payment._id}>
                       <td>
-                        <span className="text-xs" style={{ color: '#94a3b8' }}>{fmt(payment.paymentDate)}</span>
+                        <span className="text-xs" style={{ color: 'var(--muted)' }}>{fmt(payment.paymentDate)}</span>
                       </td>
                       <td>
                         <span className="badge badge-neutral">{sub.substockistId || '—'}</span>
@@ -238,18 +238,18 @@ const PaymentHistory = () => {
                         <div className="flex items-center gap-2">
                           <div
                             className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                            style={{ background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff' }}
+                            style={{ background: 'var(--primary-gradient)', color: '#fff' }}
                           >
                             {sub.firstName?.[0]}{sub.lastName?.[0]}
                           </div>
-                          <span className="font-medium text-sm" style={{ color: '#f1f5f9' }}>{name}</span>
+                          <span className="font-medium text-sm" style={{ color: 'var(--text)' }}>{name}</span>
                         </div>
                       </td>
-                      <td><span className="text-xs" style={{ color: '#94a3b8' }}>{fmt(payment.fromDate)}</span></td>
-                      <td><span className="text-xs" style={{ color: '#94a3b8' }}>{fmt(payment.toDate)}</span></td>
-                      <td><span className="font-semibold text-sm" style={{ color: '#f1f5f9' }}>${payment.totalAmount.toLocaleString()}</span></td>
-                      <td><span className="font-semibold text-sm" style={{ color: '#34d399' }}>${payment.paidAmount.toLocaleString()}</span></td>
-                      <td><span className="font-semibold text-sm" style={{ color: payment.dueAmount > 0 ? '#fda4af' : '#34d399' }}>${payment.dueAmount.toLocaleString()}</span></td>
+                      <td><span className="text-xs" style={{ color: 'var(--muted)' }}>{fmt(payment.fromDate)}</span></td>
+                      <td><span className="text-xs" style={{ color: 'var(--muted)' }}>{fmt(payment.toDate)}</span></td>
+                      <td><span className="font-semibold text-sm" style={{ color: 'var(--text)' }}>${payment.totalAmount.toLocaleString()}</span></td>
+                      <td><span className="font-semibold text-sm" style={{ color: 'var(--paid-color)' }}>${payment.paidAmount.toLocaleString()}</span></td>
+                      <td><span className="font-semibold text-sm" style={{ color: payment.dueAmount > 0 ? 'var(--due-color)' : 'var(--paid-color)' }}>${payment.dueAmount.toLocaleString()}</span></td>
                       <td><StatusBadge due={payment.dueAmount} /></td>
                     </tr>
                   )
@@ -261,10 +261,10 @@ const PaymentHistory = () => {
 
         {/* Footer pagination info */}
         {!loading && payments.length > 0 && (
-          <div className="mt-4 flex items-center justify-between pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-            <p className="text-xs" style={{ color: '#94a3b8' }}>
-              Showing <span className="font-semibold" style={{ color: '#cbd5e1' }}>{payments.length}</span> of{' '}
-              <span className="font-semibold" style={{ color: '#cbd5e1' }}>{totalCount}</span> records
+          <div className="mt-4 flex items-center justify-between pt-4" style={{ borderTop: '1px solid var(--border)' }}>
+            <p className="text-xs" style={{ color: 'var(--muted)' }}>
+              Showing <span className="font-semibold" style={{ color: 'var(--text)' }}>{payments.length}</span> of{' '}
+              <span className="font-semibold" style={{ color: 'var(--text)' }}>{totalCount}</span> records
             </p>
             <div className="flex items-center gap-1">
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => i + 1).map(p => (
@@ -273,8 +273,8 @@ const PaymentHistory = () => {
                   onClick={() => fetchPayments(p)}
                   className="w-7 h-7 rounded-lg text-xs font-semibold transition-all duration-200 cursor-pointer"
                   style={page === p
-                    ? { background: 'linear-gradient(135deg,#4f46e5,#7c3aed)', color: '#fff', border: 'none' }
-                    : { background: '#0f172a', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.06)', cursor: 'pointer' }
+                    ? { background: 'var(--primary-gradient)', color: '#fff', border: 'none' }
+                    : { background: 'var(--surface-alt)', color: 'var(--muted)', border: '1px solid var(--border)', cursor: 'pointer' }
                   }
                 >
                   {p}

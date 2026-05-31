@@ -20,9 +20,9 @@ const Field = ({ label, optional, icon, children }) => (
 );
 
 const inputCls = 'w-full pl-10 pr-4 py-3 text-sm rounded-xl transition-all duration-200 outline-none';
-const inputBase = { border: '1.5px solid rgba(255,255,255,0.1)', background: '#0f172a', color: '#f1f5f9', fontFamily: 'Inter,sans-serif' };
-const focusOn  = e => { e.target.style.borderColor='#818cf8'; e.target.style.background='#0f172a'; e.target.style.boxShadow='0 0 0 3px rgba(99,102,241,0.2)'; };
-const focusOff = e => { e.target.style.borderColor='rgba(255,255,255,0.1)'; e.target.style.background='#0f172a'; e.target.style.boxShadow='none'; };
+const inputBase = { border: '1.5px solid var(--input-border)', background: 'var(--surface-alt)', color: 'var(--text)', fontFamily: 'Inter,sans-serif' };
+const focusOn  = e => { e.target.style.borderColor='var(--primary)'; e.target.style.background='var(--surface-alt)'; e.target.style.boxShadow='0 0 0 3px var(--primary-light)'; };
+const focusOff = e => { e.target.style.borderColor='var(--input-border)'; e.target.style.background='var(--surface-alt)'; e.target.style.boxShadow='none'; };
 
 const GeneratePayment = () => {
     const today = new Date().toISOString().split('T')[0];
@@ -128,7 +128,7 @@ const GeneratePayment = () => {
                                     value={formData.stockistName} onChange={handleChange}
                                     required placeholder="Auto-filled from ID"
                                     className={inputCls}
-                                    style={{ ...inputBase, background: idFound ? 'rgba(16,185,129,0.1)' : '#0f172a', borderColor: idFound ? '#10b981' : 'rgba(255,255,255,0.1)' }}
+                                    style={{ ...inputBase, background: idFound ? 'rgba(16,185,129,0.1)' : 'var(--surface-alt)', borderColor: idFound ? '#10b981' : 'var(--input-border)' }}
                                     onFocus={focusOn} onBlur={focusOff}
                                 />
                                 {idLookupError && (
@@ -137,7 +137,7 @@ const GeneratePayment = () => {
                                     </p>
                                 )}
                                 {idFound && (
-                                    <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: '#34d399' }}>
+                                    <p className="text-xs mt-1.5 flex items-center gap-1" style={{ color: 'var(--paid-color)' }}>
                                         <CheckCircle size={11} />Partner found
                                     </p>
                                 )}
@@ -179,19 +179,19 @@ const GeneratePayment = () => {
                                 <input
                                     type="number" name="duePayment" value={formData.duePayment} readOnly
                                     className={inputCls}
-                                    style={{ ...inputBase, background: due > 0 ? 'rgba(244,63,94,0.1)' : 'rgba(16,185,129,0.1)', borderColor: due > 0 ? 'rgba(244,63,94,0.3)' : 'rgba(16,185,129,0.3)', color: due > 0 ? '#fda4af' : '#34d399', fontWeight: 700 }}
+                                    style={{ ...inputBase, background: due > 0 ? 'rgba(244,63,94,0.1)' : 'rgba(16,185,129,0.1)', borderColor: due > 0 ? 'rgba(244,63,94,0.3)' : 'rgba(16,185,129,0.3)', color: due > 0 ? 'var(--due-color)' : 'var(--paid-color)', fontWeight: 700 }}
                                 />
                             </Field>
                         </div>
 
-                        <div className="flex justify-end pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div className="flex justify-end pt-4" style={{ borderTop: '1px solid var(--border)' }}>
                             <button
                                 type="submit" id="generate-payment-submit"
                                 disabled={loading}
                                 className="inline-flex items-center gap-2 px-7 py-3 rounded-xl text-sm font-semibold text-white transition-all duration-200"
                                 style={{
-                                    background: loading ? '#a5b4fc' : 'linear-gradient(135deg,#4f46e5,#7c3aed)',
-                                    boxShadow: loading ? 'none' : '0 6px 20px rgba(79,70,229,0.35)',
+                                    background: loading ? 'var(--primary-light)' : 'var(--primary-gradient)',
+                                    boxShadow: loading ? 'none' : '0 6px 20px var(--primary-light)',
                                     cursor: loading ? 'not-allowed' : 'pointer',
                                 }}
                             >
@@ -210,15 +210,15 @@ const GeneratePayment = () => {
                 {/* Live summary card */}
                 <div className="card p-6 animate-slide-up h-fit" style={{ animationDelay: '80ms' }}>
                     <div className="flex items-center gap-2 mb-5">
-                        <Zap size={16} color="#6366f1" />
-                        <h3 className="text-sm font-bold" style={{ color: '#f8fafc' }}>Live Summary</h3>
+                        <Zap size={16} color="var(--primary)" />
+                        <h3 className="text-sm font-bold" style={{ color: 'var(--text)' }}>Live Summary</h3>
                     </div>
 
                     <div className="space-y-4">
                         {[
-                            { label: 'Total', value: total, style: { color: '#818cf8' }, bg: 'rgba(99,102,241,0.12)' },
-                            { label: 'Paid',  value: paid,  style: { color: '#34d399' }, bg: 'rgba(16,185,129,0.12)' },
-                            { label: 'Due',   value: due,   style: { color: '#fda4af' }, bg: 'rgba(244,63,94,0.12)' },
+                            { label: 'Total', value: total, style: { color: 'var(--primary)' }, bg: 'var(--primary-light)' },
+                            { label: 'Paid',  value: paid,  style: { color: 'var(--paid-color)' }, bg: 'rgba(16,185,129,0.12)' },
+                            { label: 'Due',   value: due,   style: { color: 'var(--due-color)' }, bg: 'rgba(244,63,94,0.12)' },
                         ].map(({ label, value, style, bg }) => (
                             <div key={label} className="flex items-center justify-between px-4 py-3 rounded-xl" style={{ background: bg }}>
                                 <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#94a3b8' }}>{label}</span>
@@ -234,10 +234,10 @@ const GeneratePayment = () => {
                                 <span>Payment Progress</span>
                                 <span>{paidPct.toFixed(0)}%</span>
                             </div>
-                            <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: '#0f172a' }}>
+                            <div className="w-full h-2.5 rounded-full overflow-hidden" style={{ background: 'var(--surface-alt)' }}>
                                 <div
                                     className="h-full rounded-full transition-all duration-500"
-                                    style={{ width: `${paidPct}%`, background: 'linear-gradient(90deg,#4f46e5,#10b981)' }}
+                                    style={{ width: `${paidPct}%`, background: 'linear-gradient(90deg,var(--primary),#10b981)' }}
                                 />
                             </div>
                         </div>
