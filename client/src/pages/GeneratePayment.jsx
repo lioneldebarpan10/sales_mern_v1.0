@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, Hash, Calendar, DollarSign, CreditCard, Wallet, Calculator, Zap, X, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { User, Hash, Calendar, DollarSign, CreditCard, Wallet, Calculator, Zap, X, CheckCircle, Search } from 'lucide-react';
 import { toast } from 'react-toastify';
 import api from '../services/api';
 
@@ -34,6 +34,10 @@ const GeneratePayment = () => {
     const [loading, setLoading] = useState(false);
     const [idLookupError, setIdLookupError] = useState('');
     const [idFound, setIdFound] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const dropdownRef = useRef(null);
 
     // Auto-calc due
     useEffect(() => {
@@ -47,31 +51,71 @@ const GeneratePayment = () => {
         const { name, value } = e.target;
         if ((name === 'totalPayment' || name === 'paidPayment') && parseFloat(value) < 0) return;
         setFormData(prev => ({ ...prev, [name]: value }));
+        
+        // Trigger search on stockistId change
+        if (name === 'stockistId') {
+            setShowDropdown(true);
+            setIdFound(false);
+            setIdLookupError('');
+        }
     };
 
-    // ID lookup
+    // Search substockists
     useEffect(() => {
         const timer = setTimeout(async () => {
-            const id = formData.stockistId.trim();
-            if (!id) { setIdLookupError(''); setIdFound(false); return; }
-            try {
-                const res = await api.get(`/api/substockist/${id}`);
-                const sub = res.data.substockist;
-                const fullName = `${sub.firstName} ${sub.middleName ? sub.middleName + ' ' : ''}${sub.lastName}`.trim();
-                setFormData(prev => ({ ...prev, stockistName: fullName }));
+            const searchTerm = formData.stockistId.trim();
+            if (!searchTerm) { 
+                setSearchResults([]);
+                setShowDropdown(false);
                 setIdLookupError('');
-                setIdFound(true);
-            } catch {
-                setIdLookupError('Substockist ID not found');
                 setIdFound(false);
+                return;
+            }
+            
+            setSearchLoading(true);
+            try {
+                const res = await api.get('/api/substockist', { params: { search: searchTerm } });
+                setSearchResults(res.data.data || []);
+                setShowDropdown(true);
+                setIdLookupError('');
+            } catch (err) {
+                setSearchResults([]);
+                setIdLookupError('Failed to search substockists');
+            } finally {
+                setSearchLoading(false);
             }
         }, 400);
         return () => clearTimeout(timer);
     }, [formData.stockistId]);
 
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    // Select substockist from dropdown
+    const selectSubstockist = (substockist) => {
+        const fullName = `${substockist.firstName} ${substockist.middleName ? substockist.middleName + ' ' : ''}${substockist.lastName}`.trim();
+        setFormData(prev => ({ 
+            ...prev, 
+            stockistName: fullName,
+            stockistId: substockist.substockistId
+        }));
+        setIdFound(true);
+        setIdLookupError('');
+        setShowDropdown(false);
+        setSearchResults([]);
+    };
+
     const handleSubmit = async e => {
         e.preventDefault();
-        if (idLookupError) { toast.error(idLookupError); return; }
+        if (!idFound) { toast.error('Please select a valid substockist from the list'); return; }
         if (parseFloat(formData.totalPayment) <= 0) { toast.error('Total payment must be greater than 0'); return; }
         if (!formData.stockistName.trim()) { toast.error('Substockist name is required'); return; }
         if (new Date(formData.fromDate) > new Date(formData.toDate)) { toast.error('From date cannot be after To date'); return; }
@@ -127,8 +171,9 @@ const GeneratePayment = () => {
                                     type="text" name="stockistName" id="stockist-name"
                                     value={formData.stockistName} onChange={handleChange}
                                     required placeholder="Auto-filled from ID"
+                                    readOnly={idFound}
                                     className={inputCls}
-                                    style={{ ...inputBase, background: idFound ? 'rgba(16,185,129,0.1)' : 'var(--surface-alt)', borderColor: idFound ? '#10b981' : 'var(--input-border)' }}
+                                    style={{ ...inputBase, background: idFound ? 'rgba(16,185,129,0.1)' : 'var(--surface-alt)', borderColor: idFound ? '#10b981' : 'var(--input-border)', cursor: idFound ? 'not-allowed' : 'auto' }}
                                     onFocus={focusOn} onBlur={focusOff}
                                 />
                                 {idLookupError && (
@@ -148,10 +193,53 @@ const GeneratePayment = () => {
                                 <input
                                     type="text" name="stockistId" id="stockist-id"
                                     value={formData.stockistId} onChange={handleChange}
-                                    required placeholder="Unique ID"
+                                    required placeholder="Enter ID or name"
                                     className={inputCls} style={inputBase}
                                     onFocus={focusOn} onBlur={focusOff}
+                                    autoComplete="off"
                                 />
+                                {/* Search Results Dropdown */}
+                                {showDropdown && (
+                                    <div 
+                                        ref={dropdownRef}
+                                        className="absolute top-full left-0 right-0 z-50 mt-2 rounded-xl border shadow-lg"
+                                        style={{ 
+                                            background: 'var(--surface-alt)',
+                                            borderColor: 'var(--input-border)',
+                                            maxHeight: '250px',
+                                            overflow: 'auto'
+                                        }}
+                                    >
+                                        {searchLoading ? (
+                                            <div className="p-3 text-center text-sm" style={{ color: '#64748b' }}>
+                                                <span className="inline-block animate-spin">⟳</span> Searching...
+                                            </div>
+                                        ) : searchResults.length > 0 ? (
+                                            searchResults.map((substockist, idx) => (
+                                                <div
+                                                    key={idx}
+                                                    onClick={() => selectSubstockist(substockist)}
+                                                    className="p-3 cursor-pointer border-b hover:opacity-80 transition-opacity last:border-b-0"
+                                                    style={{ 
+                                                        borderColor: 'var(--border)',
+                                                        color: 'var(--text)'
+                                                    }}
+                                                >
+                                                    <div className="font-medium text-sm">
+                                                        {substockist.firstName} {substockist.middleName ? substockist.middleName + ' ' : ''}{substockist.lastName}
+                                                    </div>
+                                                    <div className="text-xs" style={{ color: '#64748b' }}>
+                                                        ID: {substockist.substockistId}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : formData.stockistId.trim() ? (
+                                            <div className="p-3 text-center text-sm" style={{ color: '#64748b' }}>
+                                                No results found
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                )}
                             </Field>
 
                             {/* From Date */}

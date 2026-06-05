@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSidebar } from '../context/SidebarContext';
 
-const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
+const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen, onOpenReportModal }) => {
     const [activeRoute, setActiveRoute] = React.useState("Dashboard");
     const navigate = useNavigate();
     const location = useLocation();
@@ -97,6 +97,7 @@ const Sidebar = ({ isMobileMenuOpen, setIsMobileMenuOpen }) => {
             {/* Bottom actions */}
             <div className="p-4 space-y-2" style={{ borderTop: '1px solid var(--border)' }}>
                 <button
+                    onClick={onOpenReportModal}
                     className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 cursor-pointer"
                     style={{ background: 'var(--primary-gradient)', color: '#fff', boxShadow: '0 4px 16px var(--primary-light)' }}
                 >

@@ -7,6 +7,7 @@ import ViewSubStockist from './pages/ViewSubStockist'
 import SubstockistProfile from './pages/SubstockistProfile'
 import GeneratePayment from './pages/GeneratePayment'
 import PaymentHistory from './pages/PaymentHistory'
+import GenerateReport from './pages/GenerateReport'
 import Login from './pages/Login'
 import { useAuth } from './context/AuthContext'
 import { SidebarProvider, useSidebar } from './context/SidebarContext'
@@ -33,6 +34,7 @@ function AppLayout() {
   const { isSidebarOpen } = useSidebar()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [theme, setTheme] = useState('dark')
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
 
   useEffect(() => {
     const storedTheme = localStorage.getItem('salesify-theme')
@@ -62,7 +64,7 @@ function AppLayout() {
       <ToastContainer theme={theme === 'dark' ? 'dark' : 'light'} position="top-right" autoClose={3000} />
       {auth && <Navbar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} theme={theme} toggleTheme={() => setTheme(prev => (prev === 'dark' ? 'light' : 'dark'))} />}
       <div className="flex min-h-screen pt-16" style={{ background: 'var(--bg)' }}>
-        {auth && <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />}
+        {auth && <Sidebar isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} onOpenReportModal={() => setIsReportModalOpen(true)} />}
         <div
           className={`flex-1 transition-all duration-300 ease-in-out ${
             auth
@@ -83,6 +85,7 @@ function AppLayout() {
           </Routes>
         </div>
       </div>
+      <GenerateReport isOpen={isReportModalOpen} onClose={() => setIsReportModalOpen(false)} />
     </>
   )
 }
